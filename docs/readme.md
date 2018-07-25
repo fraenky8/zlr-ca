@@ -1,6 +1,11 @@
 ## Design Decisions
 "Document your architectural decisions" 
 
+#### App Structure
+tried to stick to golang standard package layout 
+
+[https://github.com/golang-standards/project-layout]
+
 #### http-Framework
 ##### choice: 
 

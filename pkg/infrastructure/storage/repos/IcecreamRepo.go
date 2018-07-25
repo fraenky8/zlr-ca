@@ -2,8 +2,10 @@ package repos
 
 import (
 	"fmt"
+
 	"github.com/fraenky8/zlr-ca/pkg/core/domain"
 	"github.com/fraenky8/zlr-ca/pkg/infrastructure/storage"
+	"github.com/jmoiron/sqlx"
 )
 
 type IcecreamRepo struct {
@@ -18,6 +20,35 @@ func NewIcecreamRepo(db *storage.Database) *IcecreamRepo {
 
 func (r *IcecreamRepo) Create(ic domain.Icecream) (int64, error) {
 
+	stmt, err := r.prepareCreateStmt()
+	if err != nil {
+		return 0, err
+	}
+
+	return r.create(stmt, ic)
+}
+
+func (r *IcecreamRepo) Creates(icecreams []domain.Icecream) ([]int64, error) {
+
+	stmt, err := r.prepareCreateStmt()
+	if err != nil {
+		return nil, err
+	}
+
+	var ids []int64
+	for _, icecream := range icecreams {
+
+		id, err := r.create(stmt, icecream)
+		if err != nil {
+			return nil, err
+		}
+		ids = append(ids, id)
+	}
+
+	return ids, nil
+}
+
+func (r *IcecreamRepo) prepareCreateStmt() (*sqlx.Stmt, error) {
 	stmt, err := r.db.Preparex(`
 		INSERT INTO icecream
   			(name, description, story, image_open, image_closed, allergy_info, dietary_certifications)
@@ -26,13 +57,17 @@ func (r *IcecreamRepo) Create(ic domain.Icecream) (int64, error) {
 		RETURNING product_id
 	`)
 	if err != nil {
-		return 0, fmt.Errorf("could not prepare statement: %v", err)
+		return nil, fmt.Errorf("could not prepare statement: %v", err)
 	}
+	return stmt, nil
+}
+
+func (r *IcecreamRepo) create(stmt *sqlx.Stmt, ic domain.Icecream) (int64, error) {
 
 	var productId int64
-	err = stmt.Get(&productId, ic.Name, ic.Description, ic.Story, ic.ImageOpen, ic.ImageClosed, ic.AllergyInfo, ic.DietaryCertifications)
+	err := stmt.Get(&productId, ic.Name, ic.Description, ic.Story, ic.ImageOpen, ic.ImageClosed, ic.AllergyInfo, ic.DietaryCertifications)
 	if err != nil {
-		return 0, fmt.Errorf("could not retrieve last inserted id: %v", err)
+		return 0, fmt.Errorf("could not create icecream: %v", err)
 	}
 
 	ids, err := NewIngredientsRepo(r.db).Creates(ic.Ingredients)

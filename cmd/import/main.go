@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"time"
 
 	"github.com/fraenky8/zlr-ca/pkg/core/domain"
 	"github.com/fraenky8/zlr-ca/pkg/infrastructure/storage"
@@ -11,7 +12,7 @@ import (
 )
 
 func main() {
-
+	start := time.Now()
 	fmt.Println("starting import of icecream.json")
 
 	db, err := storage.Connect(&storage.Config{
@@ -36,21 +37,15 @@ func main() {
 
 	var icecreams []domain.Icecream
 
-	err = json.Unmarshal(b, &icecreams)
-
-	if err != nil {
+	if err = json.Unmarshal(b, &icecreams); err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	for _, icecream := range icecreams {
-		fmt.Println("\t" + icecream.Name)
-		_, err := repos.NewIcecreamRepo(db).Create(icecream)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
+	if _, err = repos.NewIcecreamRepo(db).Creates(icecreams); err != nil {
+		fmt.Println(err)
+		return
 	}
 
-	fmt.Println("done")
+	fmt.Printf("done (%s)", time.Since(start))
 }
