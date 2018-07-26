@@ -2,9 +2,11 @@ package repos
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/fraenky8/zlr-ca/pkg/core/domain"
 	"github.com/fraenky8/zlr-ca/pkg/infrastructure/storage"
+	"github.com/fraenky8/zlr-ca/pkg/infrastructure/storage/dtos"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -91,4 +93,48 @@ func (r *IcecreamRepo) create(stmt *sqlx.Stmt, ic domain.Icecream) (int64, error
 	}
 
 	return productId, nil
+}
+
+func (r *IcecreamRepo) Read(id int64) (*domain.Icecream, error) {
+
+	var icecream []*dtos.Icecream
+	err := r.db.Select(&icecream, `
+		SELECT 
+			product_id, 
+			name, 
+			description, 
+			story, 
+			image_open, 
+			image_closed, 
+			allergy_info, 
+			dietary_certifications
+		FROM icecream 
+		WHERE product_id = $1
+	`, id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if len(icecream) == 0 {
+		return nil, nil
+	}
+
+	// TODO ingredients and sourcing values
+
+	return r.Convert(icecream[0])
+}
+
+func (r *IcecreamRepo) Convert(icecream *dtos.Icecream) (*domain.Icecream, error) {
+
+	return &domain.Icecream{
+		ProductID:             strconv.Itoa(icecream.ProductId),
+		Name:                  icecream.Name,
+		Description:           icecream.Description,
+		Story:                 icecream.Story.String,
+		ImageClosed:           icecream.ImageClosed.String,
+		ImageOpen:             icecream.ImageOpen.String,
+		AllergyInfo:           icecream.AllergyInfo.String,
+		DietaryCertifications: icecream.DietaryCertifications.String,
+	}, nil
 }

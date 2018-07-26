@@ -1,5 +1,18 @@
 package domain
 
+import "github.com/fraenky8/zlr-ca/pkg/infrastructure/storage/dtos"
+
+type Icecreamer interface {
+	Create(icecream Icecream) (int64, error)
+	Creates(icecreams []Icecream) ([]int64, error)
+	Read(id int64) (*Icecream, error)
+	Reads(id []int64) ([]*Icecream, error)
+}
+
+type Converter interface {
+	Convert(icecream *dtos.Icecream) (*Icecream, error)
+}
+
 type Ingredient string
 type Ingredients []Ingredient
 
