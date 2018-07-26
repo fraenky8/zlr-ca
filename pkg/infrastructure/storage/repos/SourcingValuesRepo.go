@@ -5,6 +5,7 @@ import (
 
 	"github.com/fraenky8/zlr-ca/pkg/core/domain"
 	"github.com/fraenky8/zlr-ca/pkg/infrastructure/storage"
+	"github.com/fraenky8/zlr-ca/pkg/infrastructure/storage/dtos"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -66,4 +67,32 @@ func (r *SourcingValuesRepo) create(stmt *sqlx.Stmt, sourcingValue domain.Sourci
 		return 0, fmt.Errorf("could not create sourcing value: %v", err)
 	}
 	return id, nil
+}
+
+func (r *SourcingValuesRepo) Read(icecreamProductId int64) (domain.SourcingValues, error) {
+
+	var sourcingValues []*dtos.SourcingValues
+	err := r.db.Select(&sourcingValues, `
+		SELECT
+  			id, description
+		FROM
+  			sourcing_values AS sv,
+  			icecream_has_sourcing_values AS ihsv
+		WHERE ihsv.sourcing_values_id = sv.id
+		AND ihsv.icecream_product_id = $1
+	`, icecreamProductId)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return r.Convert(sourcingValues)
+}
+
+func (r *SourcingValuesRepo) Convert(sourcingValues []*dtos.SourcingValues) (domain.SourcingValues, error) {
+	sv := domain.SourcingValues{}
+	for _, i := range sourcingValues {
+		sv = append(sv, domain.SourcingValue(i.Description))
+	}
+	return sv, nil
 }

@@ -1,6 +1,6 @@
 package dtos
 
 type SourcingValues struct {
-	Id          int    `db:"Id"`
-	Description string `db:"Description"`
+	Id          int    `db:"id"`
+	Description string `db:"description"`
 }

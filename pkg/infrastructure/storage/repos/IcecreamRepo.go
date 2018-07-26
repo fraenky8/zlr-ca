@@ -97,8 +97,8 @@ func (r *IcecreamRepo) create(stmt *sqlx.Stmt, ic domain.Icecream) (int64, error
 
 func (r *IcecreamRepo) Read(id int64) (*domain.Icecream, error) {
 
-	var icecream []*dtos.Icecream
-	err := r.db.Select(&icecream, `
+	var icecreams []*dtos.Icecream
+	err := r.db.Select(&icecreams, `
 		SELECT 
 			product_id, 
 			name, 
@@ -116,17 +116,29 @@ func (r *IcecreamRepo) Read(id int64) (*domain.Icecream, error) {
 		return nil, err
 	}
 
-	if len(icecream) == 0 {
+	if len(icecreams) == 0 {
 		return nil, nil
 	}
 
-	// TODO ingredients and sourcing values
+	icecream, err := r.Convert(icecreams[0])
+	if err != nil {
+		return nil, err
+	}
 
-	return r.Convert(icecream[0])
+	icecream.Ingredients, err = NewIngredientsRepo(r.db).Read(id)
+	if err != nil {
+		return nil, err
+	}
+
+	icecream.SourcingValues, err = NewSourcingValuesRepo(r.db).Read(id)
+	if err != nil {
+		return nil, err
+	}
+
+	return icecream, nil
 }
 
 func (r *IcecreamRepo) Convert(icecream *dtos.Icecream) (*domain.Icecream, error) {
-
 	return &domain.Icecream{
 		ProductID:             strconv.Itoa(icecream.ProductId),
 		Name:                  icecream.Name,

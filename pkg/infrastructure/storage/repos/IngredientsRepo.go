@@ -5,6 +5,7 @@ import (
 
 	"github.com/fraenky8/zlr-ca/pkg/core/domain"
 	"github.com/fraenky8/zlr-ca/pkg/infrastructure/storage"
+	"github.com/fraenky8/zlr-ca/pkg/infrastructure/storage/dtos"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -66,4 +67,32 @@ func (r *IngredientsRepo) create(stmt *sqlx.Stmt, ingredient domain.Ingredient) 
 		return 0, fmt.Errorf("could not create ingredient: %v", err)
 	}
 	return id, nil
+}
+
+func (r *IngredientsRepo) Read(icecreamProductId int64) (domain.Ingredients, error) {
+
+	var ingredients []*dtos.Ingredients
+	err := r.db.Select(&ingredients, `
+		SELECT
+  			id, name
+		FROM
+  			ingredients AS i,
+  			icecream_has_ingredients AS ihi
+		WHERE ihi.ingredients_id = i.id
+		AND ihi.icecream_product_id = $1
+	`, icecreamProductId)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return r.Convert(ingredients)
+}
+
+func (r *IngredientsRepo) Convert(ingredients []*dtos.Ingredients) (domain.Ingredients, error) {
+	di := domain.Ingredients{}
+	for _, i := range ingredients {
+		di = append(di, domain.Ingredient(i.Name))
+	}
+	return di, nil
 }

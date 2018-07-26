@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -78,7 +79,7 @@ func readIcecream(c *gin.Context) {
 	id, err := strconv.ParseInt(sid, 10, 64)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, &response{
-			Message:   "faulty id",
+			Message:   fmt.Sprintf("faulty id: %v", err),
 			Icecreams: []*domain.Icecream{},
 		})
 		return
@@ -86,8 +87,9 @@ func readIcecream(c *gin.Context) {
 
 	icecream, err := repos.NewIcecreamRepo(db).Read(id)
 	if err != nil {
+		log.Printf("could not get icecream: %v", err)
 		c.JSON(http.StatusInternalServerError, &response{
-			Message:   fmt.Sprintf("could not get icecream: %v", err),
+			Message:   "a database error occured, please try again later",
 			Icecreams: []*domain.Icecream{},
 		})
 		return
