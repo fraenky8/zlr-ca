@@ -9,16 +9,19 @@ type Icecreamer interface {
 }
 
 type Ingredienter interface {
-	Create(ingredient Ingredient)
+	Create(ingredient Ingredient) (int64, error)
 	Creates(ingredients Ingredients) ([]int64, error)
 	Read(icecreamProductId int64) (Ingredients, error)
-	Reads(icecreamProductIds []int64) (ingredients []Ingredients, err error)
+	Reads(icecreamProductIds []int64) ([]Ingredients, error)
+	ReadAll() (Ingredients, error)
 }
 
 type SourcingValuer interface {
-	Create(sourcingValue SourcingValue)
+	Create(sourcingValue SourcingValue) (int64, error)
 	Creates(sourcingValues SourcingValues) ([]int64, error)
-	Read(icecreamProductId int64) (*SourcingValues, error)
+	Read(icecreamProductId int64) (SourcingValues, error)
+	Reads(icecreamProductIds []int64) ([]SourcingValues, error)
+	ReadAll() (SourcingValues, error)
 }
 
 type Ingredient string

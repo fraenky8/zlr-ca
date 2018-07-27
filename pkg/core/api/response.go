@@ -50,14 +50,14 @@ type ErrorsResponse struct {
 	Error []string `json:"errors"`
 }
 
-func Success(data interface{}) Response {
+func SuccessResponse(data interface{}) Response {
 	return Response{
 		Status: StatusOk,
 		Data:   data,
 	}
 }
 
-func Fail(errors ...error) Response {
+func FailResponse(errors ...error) Response {
 
 	var errs []string
 	for _, e := range errors {
@@ -70,15 +70,15 @@ func Fail(errors ...error) Response {
 	}
 }
 
-func FailString(strings ...string) Response {
+func FailStringResponse(strings ...string) Response {
 	var errors []error
 	for _, s := range strings {
 		errors = append(errors, fmt.Errorf(s))
 	}
-	return Fail(errors...)
+	return FailResponse(errors...)
 }
 
-func Error(message string) Response {
+func ErrorResponse(message string) Response {
 	return Response{
 		Status:  StatusError,
 		Message: message,
