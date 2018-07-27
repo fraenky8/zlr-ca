@@ -5,25 +5,19 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 
-	"github.com/fraenky8/zlr-ca/pkg/core/domain"
+	"github.com/fraenky8/zlr-ca/pkg/core/api"
 	"github.com/fraenky8/zlr-ca/pkg/infrastructure/storage"
 	"github.com/fraenky8/zlr-ca/pkg/infrastructure/storage/repos"
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
 )
 
-type response struct {
-	Message   string             `json:"message"`
-	Icecreams []*domain.Icecream `json:"icecreams"`
-}
-
 var (
 	db  *storage.Database
 	err error
 )
-
-// TODO dont expose errors to users
 
 func main() {
 
@@ -45,20 +39,13 @@ func main() {
 	r := gin.Default()
 	r.Use(gzip.Gzip(gzip.DefaultCompression))
 
-	read := r.Group("/icecream")
+	read := r.Group("/icecreams")
 	{
 		read.GET("/", readIcecream)
-		read.GET("/:id", readIcecream)
-		read.GET("/:id/", readIcecream)
+		read.GET("/:ids", readIcecream)
+		read.GET("/:ids/", readIcecream)
 	}
 
-	// reads := r.Group("/icecreams")
-	// {
-	// 	reads.GET("/", readIcecreams)
-	// 	reads.GET("/:ids", readIcecreams)
-	// 	reads.GET("/:ids/", readIcecreams)
-	// }
-	//
 	// r.POST("/icecream", createIcecream)
 
 	// listen and serve on 0.0.0.0:8080
@@ -66,44 +53,51 @@ func main() {
 }
 
 func readIcecream(c *gin.Context) {
-	sid := c.Param("id")
+	rawIds := c.Param("ids")
+	rawIds = strings.TrimSpace(rawIds)
 
-	if sid == "" {
-		c.JSON(http.StatusBadRequest, &response{
-			Message:   "no id provided",
-			Icecreams: []*domain.Icecream{},
-		})
+	if rawIds == "" {
+		c.JSON(http.StatusBadRequest, api.FailString("no id(s) provided"))
 		return
 	}
 
-	id, err := strconv.ParseInt(sid, 10, 64)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, &response{
-			Message:   fmt.Sprintf("faulty id: %v", err),
-			Icecreams: []*domain.Icecream{},
-		})
+	var ids []int64
+	for _, id := range strings.Split(rawIds, ",") {
+		tid := strings.TrimSpace(id)
+		if tid != "" {
+			id, err := strconv.ParseInt(tid, 10, 64)
+			if err != nil {
+				// ignore faulty ids - but give message
+				log.Printf("faulty id: %v", err)
+				// errors = append(errors, fmt.Errorf("faulty id: %v", err))
+				continue
+			}
+			ids = append(ids, id)
+		}
+	}
+
+	if len(ids) == 0 {
+		c.JSON(http.StatusBadRequest, api.FailString("no valid id(s) provided"))
 		return
 	}
 
-	icecream, err := repos.NewIcecreamRepo(db).Read(id)
+	icecreams, err := repos.NewIcecreamRepo(db).Read(ids)
 	if err != nil {
 		log.Printf("could not get icecream: %v", err)
-		c.JSON(http.StatusInternalServerError, &response{
-			Message:   "a database error occured, please try again later",
-			Icecreams: []*domain.Icecream{},
-		})
+		c.JSON(http.StatusInternalServerError, api.Error("a database error occured, please try again later"))
 		return
 	}
 
-	icecreams := []*domain.Icecream{}
-	if icecream != nil {
-		icecreams = append(icecreams, icecream)
+	if len(icecreams) == 1 {
+		c.JSON(http.StatusOK, api.Success(
+			&api.IcecreamResponse{Icecream: icecreams[0]}),
+		)
+		return
 	}
 
-	c.JSON(http.StatusOK, &response{
-		Message:   "",
-		Icecreams: icecreams,
-	})
+	c.JSON(http.StatusOK, api.Success(
+		&api.IcecreamsResponse{Icecreams: icecreams}),
+	)
 }
 
 // func readIcecreams(c *gin.Context) {

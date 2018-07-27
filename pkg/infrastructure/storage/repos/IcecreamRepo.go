@@ -53,9 +53,9 @@ func (r *IcecreamRepo) Creates(icecreams []domain.Icecream) ([]int64, error) {
 func (r *IcecreamRepo) prepareCreateStmt() (*sqlx.Stmt, error) {
 	stmt, err := r.db.Preparex(`
 		INSERT INTO icecream
-  			(name, description, story, image_open, image_closed, allergy_info, dietary_certifications)
+  			(product_id, name, description, story, image_open, image_closed, allergy_info, dietary_certifications)
 		VALUES
-  			($1, $2, $3, $4, $5, $6, $7)
+  			($1, $2, $3, $4, $5, $6, $7, $8)
 		RETURNING product_id
 	`)
 	if err != nil {
@@ -64,15 +64,18 @@ func (r *IcecreamRepo) prepareCreateStmt() (*sqlx.Stmt, error) {
 	return stmt, nil
 }
 
-func (r *IcecreamRepo) create(stmt *sqlx.Stmt, ic domain.Icecream) (int64, error) {
+func (r *IcecreamRepo) create(stmt *sqlx.Stmt, icecream domain.Icecream) (int64, error) {
 
 	var productId int64
-	err := stmt.Get(&productId, ic.Name, ic.Description, ic.Story, ic.ImageOpen, ic.ImageClosed, ic.AllergyInfo, ic.DietaryCertifications)
+	err := stmt.Get(&productId,
+		icecream.ProductID, icecream.Name, icecream.Description, icecream.Story,
+		icecream.ImageOpen, icecream.ImageClosed, icecream.AllergyInfo, icecream.DietaryCertifications,
+	)
 	if err != nil {
 		return 0, fmt.Errorf("could not create icecream: %v", err)
 	}
 
-	ids, err := NewIngredientsRepo(r.db).Creates(ic.Ingredients)
+	ids, err := NewIngredientsRepo(r.db).Creates(icecream.Ingredients)
 	if err != nil {
 		return 0, fmt.Errorf("could not create ingredients: %v", err)
 	}
@@ -82,7 +85,7 @@ func (r *IcecreamRepo) create(stmt *sqlx.Stmt, ic domain.Icecream) (int64, error
 		return 0, fmt.Errorf("could not create ingredients relationships: %v", err)
 	}
 
-	ids, err = NewSourcingValuesRepo(r.db).Creates(ic.SourcingValues)
+	ids, err = NewSourcingValuesRepo(r.db).Creates(icecream.SourcingValues)
 	if err != nil {
 		return 0, fmt.Errorf("could not create sourcing values: %v", err)
 	}
@@ -95,10 +98,9 @@ func (r *IcecreamRepo) create(stmt *sqlx.Stmt, ic domain.Icecream) (int64, error
 	return productId, nil
 }
 
-func (r *IcecreamRepo) Read(id int64) (*domain.Icecream, error) {
+func (r *IcecreamRepo) Read(ids []int64) ([]*domain.Icecream, error) {
 
-	var icecreams []*dtos.Icecream
-	err := r.db.Select(&icecreams, `
+	query, args, err := sqlx.In(`
 		SELECT 
 			product_id, 
 			name, 
@@ -109,44 +111,58 @@ func (r *IcecreamRepo) Read(id int64) (*domain.Icecream, error) {
 			allergy_info, 
 			dietary_certifications
 		FROM icecream 
-		WHERE product_id = $1
-	`, id)
+		WHERE product_id IN (?)
+	`, ids)
 
 	if err != nil {
 		return nil, err
 	}
 
-	if len(icecreams) == 0 {
+	// http://jmoiron.github.io/sqlx/#inQueries
+	// sqlx.In returns queries with the `?` bindvar, we can rebind it for our backend
+	query = r.db.Rebind(query)
+
+	var icecreamsDtos []*dtos.Icecream
+	if err = r.db.Select(&icecreamsDtos, query, args...); err != nil {
+		return nil, err
+	}
+
+	if len(icecreamsDtos) == 0 {
 		return nil, nil
 	}
 
-	icecream, err := r.Convert(icecreams[0])
+	icecreams, err := r.Convert(icecreamsDtos)
 	if err != nil {
 		return nil, err
 	}
 
-	icecream.Ingredients, err = NewIngredientsRepo(r.db).Read(id)
-	if err != nil {
-		return nil, err
-	}
+	// for _, icecream := range icecreamsDtos {
+	// 	icecream.Ingredients, err = NewIngredientsRepo(r.db).Read(icecream.ProductId)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	//
+	// 	icecream.SourcingValues, err = NewSourcingValuesRepo(r.db).Read(id)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// }
 
-	icecream.SourcingValues, err = NewSourcingValuesRepo(r.db).Read(id)
-	if err != nil {
-		return nil, err
-	}
-
-	return icecream, nil
+	return icecreams, nil
 }
 
-func (r *IcecreamRepo) Convert(icecream *dtos.Icecream) (*domain.Icecream, error) {
-	return &domain.Icecream{
-		ProductID:             strconv.Itoa(icecream.ProductId),
-		Name:                  icecream.Name,
-		Description:           icecream.Description,
-		Story:                 icecream.Story.String,
-		ImageClosed:           icecream.ImageClosed.String,
-		ImageOpen:             icecream.ImageOpen.String,
-		AllergyInfo:           icecream.AllergyInfo.String,
-		DietaryCertifications: icecream.DietaryCertifications.String,
-	}, nil
+func (r *IcecreamRepo) Convert(dtos []*dtos.Icecream) (icecreams []*domain.Icecream, err error) {
+	for _, icecream := range dtos {
+		icecreams = append(icecreams, &domain.Icecream{
+			ProductID:             strconv.Itoa(icecream.ProductId),
+			Name:                  icecream.Name,
+			Description:           icecream.Description,
+			Story:                 icecream.Story.String,
+			ImageClosed:           icecream.ImageClosed.String,
+			ImageOpen:             icecream.ImageOpen.String,
+			AllergyInfo:           icecream.AllergyInfo.String,
+			DietaryCertifications: icecream.DietaryCertifications.String,
+		})
+	}
+	return icecreams, nil
 }

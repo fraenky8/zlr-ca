@@ -2,8 +2,6 @@ package domain
 
 type Icecreamer interface {
 	Create(icecream Icecream) (int64, error)
-	Creates(icecreams []Icecream) ([]int64, error)
-	Read(id int64) (*Icecream, error)
 	Reads(id []int64) ([]*Icecream, error)
 	// TODO Update & Delete
 }
@@ -45,6 +43,6 @@ type Icecream struct {
 	ImageOpen             string `json:"image_open"`
 	AllergyInfo           string `json:"allergy_info"`
 	DietaryCertifications string `json:"dietary_certifications"`
-	SourcingValues        `json:"sourcing_values"`
-	Ingredients           `json:"ingredients"`
+	SourcingValues        `json:"sourcing_values,omitempty"`
+	Ingredients           `json:"ingredients,omitempty"`
 }
