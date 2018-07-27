@@ -20,14 +20,14 @@ func NewIcecreamRepo(db *storage.Database) *IcecreamRepo {
 	}
 }
 
-func (r *IcecreamRepo) Create(ic domain.Icecream) (int64, error) {
+func (r *IcecreamRepo) Create(icecream domain.Icecream) (int64, error) {
 
 	stmt, err := r.prepareCreateStmt()
 	if err != nil {
 		return 0, err
 	}
 
-	return r.create(stmt, ic)
+	return r.create(stmt, icecream)
 }
 
 func (r *IcecreamRepo) Creates(icecreams []domain.Icecream) ([]int64, error) {
@@ -120,9 +120,10 @@ func (r *IcecreamRepo) Read(ids []int64) ([]*domain.Icecream, error) {
 
 	// http://jmoiron.github.io/sqlx/#inQueries
 	// sqlx.In returns queries with the `?` bindvar, we can rebind it for our backend
+	// here: ? to $#
 	query = r.db.Rebind(query)
 
-	var icecreamsDtos []*dtos.Icecream
+	var icecreamsDtos []dtos.Icecream
 	if err = r.db.Select(&icecreamsDtos, query, args...); err != nil {
 		return nil, err
 	}
@@ -136,22 +137,10 @@ func (r *IcecreamRepo) Read(ids []int64) ([]*domain.Icecream, error) {
 		return nil, err
 	}
 
-	// for _, icecream := range icecreamsDtos {
-	// 	icecream.Ingredients, err = NewIngredientsRepo(r.db).Read(icecream.ProductId)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	//
-	// 	icecream.SourcingValues, err = NewSourcingValuesRepo(r.db).Read(id)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// }
-
 	return icecreams, nil
 }
 
-func (r *IcecreamRepo) Convert(dtos []*dtos.Icecream) (icecreams []*domain.Icecream, err error) {
+func (r *IcecreamRepo) Convert(dtos []dtos.Icecream) (icecreams []*domain.Icecream, err error) {
 	for _, icecream := range dtos {
 		icecreams = append(icecreams, &domain.Icecream{
 			ProductID:             strconv.Itoa(icecream.ProductId),

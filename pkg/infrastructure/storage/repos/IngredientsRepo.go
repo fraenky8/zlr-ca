@@ -96,3 +96,14 @@ func (r *IngredientsRepo) Convert(ingredients []*dtos.Ingredients) (domain.Ingre
 	}
 	return di, nil
 }
+
+func (r *IngredientsRepo) Reads(icecreamProductIds []int64) (ingredients []domain.Ingredients, err error) {
+	for _, id := range icecreamProductIds {
+		ingredient, err := r.Read(id)
+		if err != nil {
+			return nil, err
+		}
+		ingredients = append(ingredients, ingredient)
+	}
+	return ingredients, nil
+}

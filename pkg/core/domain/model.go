@@ -1,15 +1,18 @@
 package domain
 
+// TODO Update & Delete
+
 type Icecreamer interface {
 	Create(icecream Icecream) (int64, error)
-	Reads(id []int64) ([]*Icecream, error)
-	// TODO Update & Delete
+	Creates(icecreams []Icecream) ([]int64, error)
+	Read(ids []int64) ([]*Icecream, error)
 }
 
 type Ingredienter interface {
 	Create(ingredient Ingredient)
 	Creates(ingredients Ingredients) ([]int64, error)
-	Read(icecreamProductId int64) (*Ingredients, error)
+	Read(icecreamProductId int64) (Ingredients, error)
+	Reads(icecreamProductIds []int64) (ingredients []Ingredients, err error)
 }
 
 type SourcingValuer interface {
@@ -17,16 +20,6 @@ type SourcingValuer interface {
 	Creates(sourcingValues SourcingValues) ([]int64, error)
 	Read(icecreamProductId int64) (*SourcingValues, error)
 }
-
-// type IcecreamConverter interface {
-// 	Convert(icecream *dtos.Icecream) (*Icecream, error)
-// }
-// type IngredientConverter interface {
-// 	Convert(ingredient []*dtos.Ingredients) (*Ingredients, error)
-// }
-// type SourcingValueConverter interface {
-// 	Convert(sourcingValues []*dtos.SourcingValues) (domain.SourcingValues, error)
-// }
 
 type Ingredient string
 type Ingredients []Ingredient

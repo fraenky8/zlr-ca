@@ -30,6 +30,14 @@ type IcecreamsResponse struct {
 	Icecreams []*domain.Icecream `json:"icecreams"`
 }
 
+type IngredientResponse struct {
+	Ingredient domain.Ingredients `json:"ingredients"`
+}
+
+type IngredientsResponse struct {
+	Ingredients []domain.Ingredients `json:"ingredients"`
+}
+
 type ErrorsResponse struct {
 	Error []string `json:"errors"`
 }

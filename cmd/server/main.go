@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strconv"
-	"strings"
 
 	"github.com/fraenky8/zlr-ca/pkg/core/api"
 	"github.com/fraenky8/zlr-ca/pkg/infrastructure/storage"
@@ -39,11 +37,13 @@ func main() {
 	r := gin.Default()
 	r.Use(gzip.Gzip(gzip.DefaultCompression))
 
-	read := r.Group("/icecreams")
+	icecreams := r.Group("/icecreams")
 	{
-		read.GET("/", readIcecream)
-		read.GET("/:ids", readIcecream)
-		read.GET("/:ids/", readIcecream)
+		icecreams.GET("/", readIcecream)
+		icecreams.GET("/:ids", readIcecream)
+		icecreams.GET("/:ids/", readIcecream)
+		icecreams.GET("/:ids/ingredients", readIngredients)
+		// icecreams.GET("/:ids/sourcingvalues", readIngredients)
 	}
 
 	// r.POST("/icecream", createIcecream)
@@ -53,31 +53,10 @@ func main() {
 }
 
 func readIcecream(c *gin.Context) {
-	rawIds := c.Param("ids")
-	rawIds = strings.TrimSpace(rawIds)
 
-	if rawIds == "" {
-		c.JSON(http.StatusBadRequest, api.FailString("no id(s) provided"))
-		return
-	}
-
-	var ids []int64
-	for _, id := range strings.Split(rawIds, ",") {
-		tid := strings.TrimSpace(id)
-		if tid != "" {
-			id, err := strconv.ParseInt(tid, 10, 64)
-			if err != nil {
-				// ignore faulty ids - but give message
-				log.Printf("faulty id: %v", err)
-				// errors = append(errors, fmt.Errorf("faulty id: %v", err))
-				continue
-			}
-			ids = append(ids, id)
-		}
-	}
-
+	ids := api.ConvertIdsParam(c.Param("ids"))
 	if len(ids) == 0 {
-		c.JSON(http.StatusBadRequest, api.FailString("no valid id(s) provided"))
+		c.JSON(http.StatusBadRequest, api.FailString("no (valid) id(s) provided"))
 		return
 	}
 
@@ -100,45 +79,32 @@ func readIcecream(c *gin.Context) {
 	)
 }
 
-// func readIcecreams(c *gin.Context) {
-// 	rawIds := c.Param("ids")
-// 	rawIds = strings.TrimSpace(rawIds)
-//
-// 	if rawIds == "" {
-// 		c.JSON(200, []string{})
-// 		return
-// 	}
-//
-// 	var ids []string
-// 	for _, id := range strings.Split(rawIds, ",") {
-// 		tid := strings.TrimSpace(id)
-// 		if tid != "" {
-// 			ids = append(ids, tid)
-// 		}
-// 	}
-//
-// 	if len(ids) == 0 {
-// 		c.JSON(200, []string{})
-// 		return
-// 	}
-//
-// 	var ices []icecream
-// 	for _, icecream := range icecreams {
-// 		for _, id := range ids {
-// 			if icecream.ProductId == id {
-// 				ices = append(ices, icecream)
-// 			}
-// 		}
-// 	}
-//
-// 	if len(ices) == 0 {
-// 		c.JSON(200, []string{})
-// 		return
-// 	}
-//
-// 	c.JSON(200, ices)
-// }
-//
+func readIngredients(c *gin.Context) {
+
+	ids := api.ConvertIdsParam(c.Param("ids"))
+	if len(ids) == 0 {
+		c.JSON(http.StatusBadRequest, api.FailString("no (valid) id(s) provided"))
+		return
+	}
+
+	ingredients, err := repos.NewIngredientsRepo(db).Reads(ids)
+	if err != nil {
+		log.Printf("could not get ingredients: %v", err)
+		c.JSON(http.StatusInternalServerError, api.Error("a database error occured, please try again later"))
+	}
+
+	if len(ingredients) == 1 {
+		c.JSON(http.StatusOK, api.Success(
+			&api.IngredientResponse{Ingredient: ingredients[0]},
+		))
+		return
+	}
+
+	c.JSON(http.StatusOK, api.Success(
+		&api.IngredientsResponse{Ingredients: ingredients}),
+	)
+}
+
 // func createIcecream(c *gin.Context) {
 // 	var ice icecream
 //
