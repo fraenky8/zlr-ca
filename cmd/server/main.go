@@ -43,7 +43,7 @@ func main() {
 		icecreams.GET("/:ids", readIcecream)
 		icecreams.GET("/:ids/", readIcecream)
 		icecreams.GET("/:ids/ingredients", readIngredients)
-		// icecreams.GET("/:ids/sourcingvalues", readIngredients)
+		icecreams.GET("/:ids/sourcingvalues", readSourcingValues)
 	}
 
 	// r.POST("/icecream", createIcecream)
@@ -102,6 +102,32 @@ func readIngredients(c *gin.Context) {
 
 	c.JSON(http.StatusOK, api.Success(
 		&api.IngredientsResponse{Ingredients: ingredients}),
+	)
+}
+
+func readSourcingValues(c *gin.Context) {
+
+	ids := api.ConvertIdsParam(c.Param("ids"))
+	if len(ids) == 0 {
+		c.JSON(http.StatusBadRequest, api.FailString("no (valid) id(s) provided"))
+		return
+	}
+
+	sourcingValues, err := repos.NewSourcingValuesRepo(db).Reads(ids)
+	if err != nil {
+		log.Printf("could not get sourcing values: %v", err)
+		c.JSON(http.StatusInternalServerError, api.Error("a database error occured, please try again later"))
+	}
+
+	if len(sourcingValues) == 1 {
+		c.JSON(http.StatusOK, api.Success(
+			&api.SourcingValueResponse{SourcingValue: sourcingValues[0]},
+		))
+		return
+	}
+
+	c.JSON(http.StatusOK, api.Success(
+		&api.SourcingValuesResponse{SourcingValues: sourcingValues}),
 	)
 }
 

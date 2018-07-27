@@ -96,3 +96,14 @@ func (r *SourcingValuesRepo) Convert(sourcingValues []*dtos.SourcingValues) (dom
 	}
 	return sv, nil
 }
+
+func (r *SourcingValuesRepo) Reads(icecreamProductIds []int64) (sourcingValues []domain.SourcingValues, err error) {
+	for _, id := range icecreamProductIds {
+		sourcingValue, err := r.Read(id)
+		if err != nil {
+			return nil, err
+		}
+		sourcingValues = append(sourcingValues, sourcingValue)
+	}
+	return sourcingValues, nil
+}

@@ -38,6 +38,14 @@ type IngredientsResponse struct {
 	Ingredients []domain.Ingredients `json:"ingredients"`
 }
 
+type SourcingValueResponse struct {
+	SourcingValue domain.SourcingValues `json:"sourcing_values"`
+}
+
+type SourcingValuesResponse struct {
+	SourcingValues []domain.SourcingValues `json:"sourcing_values"`
+}
+
 type ErrorsResponse struct {
 	Error []string `json:"errors"`
 }
