@@ -132,7 +132,7 @@ func (r *IcecreamRepo) Read(ids []int64) ([]*domain.Icecream, error) {
 		return nil, nil
 	}
 
-	icecreams, err := r.Convert(icecreamsDtos)
+	icecreams, err := r.convert(icecreamsDtos)
 	if err != nil {
 		return nil, err
 	}
@@ -140,7 +140,7 @@ func (r *IcecreamRepo) Read(ids []int64) ([]*domain.Icecream, error) {
 	return icecreams, nil
 }
 
-func (r *IcecreamRepo) Convert(dtos []dtos.Icecream) (icecreams []*domain.Icecream, err error) {
+func (r *IcecreamRepo) convert(dtos []dtos.Icecream) (icecreams []*domain.Icecream, err error) {
 	for _, icecream := range dtos {
 		icecreams = append(icecreams, &domain.Icecream{
 			ProductID:             strconv.Itoa(icecream.ProductId),

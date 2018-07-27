@@ -86,15 +86,7 @@ func (r *SourcingValuesRepo) Read(icecreamProductId int64) (domain.SourcingValue
 		return nil, err
 	}
 
-	return r.Convert(sourcingValues)
-}
-
-func (r *SourcingValuesRepo) Convert(sourcingValues []*dtos.SourcingValues) (domain.SourcingValues, error) {
-	sv := domain.SourcingValues{}
-	for _, i := range sourcingValues {
-		sv = append(sv, domain.SourcingValue(i.Description))
-	}
-	return sv, nil
+	return r.convert(sourcingValues)
 }
 
 func (r *SourcingValuesRepo) Reads(icecreamProductIds []int64) (sourcingValues []domain.SourcingValues, err error) {
@@ -106,4 +98,27 @@ func (r *SourcingValuesRepo) Reads(icecreamProductIds []int64) (sourcingValues [
 		sourcingValues = append(sourcingValues, sourcingValue)
 	}
 	return sourcingValues, nil
+}
+
+func (r *SourcingValuesRepo) ReadAll() (domain.SourcingValues, error) {
+
+	var sourcingValues []*dtos.SourcingValues
+	err := r.db.Select(&sourcingValues, `
+		SELECT id, description
+		FROM sourcing_values
+	`)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return r.convert(sourcingValues)
+}
+
+func (r *SourcingValuesRepo) convert(sourcingValues []*dtos.SourcingValues) (domain.SourcingValues, error) {
+	sv := domain.SourcingValues{}
+	for _, i := range sourcingValues {
+		sv = append(sv, domain.SourcingValue(i.Description))
+	}
+	return sv, nil
 }

@@ -42,8 +42,18 @@ func main() {
 		icecreams.GET("/", readIcecream)
 		icecreams.GET("/:ids", readIcecream)
 		icecreams.GET("/:ids/", readIcecream)
-		icecreams.GET("/:ids/ingredients", readIngredients)
-		icecreams.GET("/:ids/sourcingvalues", readSourcingValues)
+		icecreams.GET("/:ids/ingredients", readIcecreamIngredients)
+		icecreams.GET("/:ids/sourcingvalues", readIcecreamSourcingValues)
+	}
+
+	ingredients := r.Group("/ingredients")
+	{
+		ingredients.GET("/", readIngredients)
+	}
+
+	sourcingvalues := r.Group("/sourcingvalues")
+	{
+		sourcingvalues.GET("/", readSourcingValues)
 	}
 
 	// r.POST("/icecream", createIcecream)
@@ -54,9 +64,9 @@ func main() {
 
 func readIcecream(c *gin.Context) {
 
-	ids := api.ConvertIdsParam(c.Param("ids"))
-	if len(ids) == 0 {
-		c.JSON(http.StatusBadRequest, api.FailString("no (valid) id(s) provided"))
+	ids, err := api.ConvertIdsParam(c.Param("ids"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, api.Fail(err))
 		return
 	}
 
@@ -79,11 +89,11 @@ func readIcecream(c *gin.Context) {
 	)
 }
 
-func readIngredients(c *gin.Context) {
+func readIcecreamIngredients(c *gin.Context) {
 
-	ids := api.ConvertIdsParam(c.Param("ids"))
-	if len(ids) == 0 {
-		c.JSON(http.StatusBadRequest, api.FailString("no (valid) id(s) provided"))
+	ids, err := api.ConvertIdsParam(c.Param("ids"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, api.Fail(err))
 		return
 	}
 
@@ -105,11 +115,23 @@ func readIngredients(c *gin.Context) {
 	)
 }
 
-func readSourcingValues(c *gin.Context) {
+func readIngredients(c *gin.Context) {
+	ingredients, err := repos.NewIngredientsRepo(db).ReadAll()
+	if err != nil {
+		log.Printf("could not get ingredients: %v", err)
+		c.JSON(http.StatusInternalServerError, api.Error("a database error occured, please try again later"))
+	}
 
-	ids := api.ConvertIdsParam(c.Param("ids"))
-	if len(ids) == 0 {
-		c.JSON(http.StatusBadRequest, api.FailString("no (valid) id(s) provided"))
+	c.JSON(http.StatusOK, api.Success(
+		&api.IngredientResponse{Ingredient: ingredients}),
+	)
+}
+
+func readIcecreamSourcingValues(c *gin.Context) {
+
+	ids, err := api.ConvertIdsParam(c.Param("ids"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, api.Fail(err))
 		return
 	}
 
@@ -128,6 +150,19 @@ func readSourcingValues(c *gin.Context) {
 
 	c.JSON(http.StatusOK, api.Success(
 		&api.SourcingValuesResponse{SourcingValues: sourcingValues}),
+	)
+}
+
+func readSourcingValues(c *gin.Context) {
+
+	sourcingValues, err := repos.NewSourcingValuesRepo(db).ReadAll()
+	if err != nil {
+		log.Printf("could not get sourcing values: %v", err)
+		c.JSON(http.StatusInternalServerError, api.Error("a database error occured, please try again later"))
+	}
+
+	c.JSON(http.StatusOK, api.Success(
+		&api.SourcingValueResponse{SourcingValue: sourcingValues}),
 	)
 }
 

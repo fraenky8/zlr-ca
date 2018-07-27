@@ -86,15 +86,7 @@ func (r *IngredientsRepo) Read(icecreamProductId int64) (domain.Ingredients, err
 		return nil, err
 	}
 
-	return r.Convert(ingredients)
-}
-
-func (r *IngredientsRepo) Convert(ingredients []*dtos.Ingredients) (domain.Ingredients, error) {
-	di := domain.Ingredients{}
-	for _, i := range ingredients {
-		di = append(di, domain.Ingredient(i.Name))
-	}
-	return di, nil
+	return r.convert(ingredients)
 }
 
 func (r *IngredientsRepo) Reads(icecreamProductIds []int64) (ingredients []domain.Ingredients, err error) {
@@ -106,4 +98,27 @@ func (r *IngredientsRepo) Reads(icecreamProductIds []int64) (ingredients []domai
 		ingredients = append(ingredients, ingredient)
 	}
 	return ingredients, nil
+}
+
+func (r *IngredientsRepo) ReadAll() (domain.Ingredients, error) {
+
+	var ingredients []*dtos.Ingredients
+	err := r.db.Select(&ingredients, `
+		SELECT id, name
+		FROM ingredients
+	`)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return r.convert(ingredients)
+}
+
+func (r *IngredientsRepo) convert(ingredients []*dtos.Ingredients) (domain.Ingredients, error) {
+	di := domain.Ingredients{}
+	for _, i := range ingredients {
+		di = append(di, domain.Ingredient(i.Name))
+	}
+	return di, nil
 }
