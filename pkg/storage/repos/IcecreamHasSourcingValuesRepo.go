@@ -7,22 +7,22 @@ import (
 )
 
 type IcecreamHasSourcingValuesRepo struct {
-	db *storage.Database
+	db storage.Database
 }
 
-func NewIcecreamHasSourcingValuesRepo(db *storage.Database) *IcecreamHasSourcingValuesRepo {
+func NewIcecreamHasSourcingValuesRepo(db storage.Database) *IcecreamHasSourcingValuesRepo {
 	return &IcecreamHasSourcingValuesRepo{
 		db: db,
 	}
 }
 
 func (r *IcecreamHasSourcingValuesRepo) Create(productId int, sourcingValueIds []int) error {
-	stmt, err := r.db.Preparex(fmt.Sprintf(`
+	stmt, err := r.db.DB().Preparex(fmt.Sprintf(`
 		INSERT INTO %s.icecream_has_sourcing_values 
 			(icecream_product_id, sourcing_values_id) 
 		VALUES ($1, $2) 
 		ON CONFLICT (icecream_product_id, sourcing_values_id) DO NOTHING
-	`, r.db.Schema))
+	`, r.db.Config().Schema))
 
 	if err != nil {
 		return fmt.Errorf("could not prepare statement: %v", err)

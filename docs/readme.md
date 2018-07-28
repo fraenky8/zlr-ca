@@ -25,6 +25,7 @@ postgresql
 because of reasons
 
 #### Improvements
+- config by env-vars, commandline params, ... 
 - adding more tests
 - table driven tests / subtests
 - implement CRUD for ingredients & sourcing values

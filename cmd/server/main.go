@@ -11,8 +11,9 @@ import (
 
 func main() {
 
-	db, err := storage.Connect(&storage.Config{
+	db, err := storage.NewPostgres(&storage.Config{
 		Host:     "192.168.99.100",
+		Port:     "5432",
 		Username: "postgres",
 		Password: "mysecretpassword",
 		Database: "postgres",

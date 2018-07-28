@@ -11,11 +11,11 @@ import (
 )
 
 type IcecreamRepo struct {
-	db   *storage.Database
+	db   storage.Database
 	repo Service
 }
 
-func NewIcecreamRepo(db *storage.Database) *IcecreamRepo {
+func NewIcecreamRepo(db storage.Database) *IcecreamRepo {
 
 	repo := &IcecreamRepo{}
 
@@ -35,13 +35,13 @@ func NewIcecreamRepo(db *storage.Database) *IcecreamRepo {
 
 func (r *IcecreamRepo) Creates(icecreams []*domain.Icecream) ([]int, error) {
 
-	stmt, err := r.db.Preparex(fmt.Sprintf(`
+	stmt, err := r.db.DB().Preparex(fmt.Sprintf(`
 		INSERT INTO %s.icecream
   			(product_id, name, description, story, image_open, image_closed, allergy_info, dietary_certifications)
 		VALUES
   			($1, $2, $3, $4, $5, $6, $7, $8)
 		RETURNING product_id
-	`, r.db.Schema))
+	`, r.db.Config().Schema))
 
 	if err != nil {
 		return nil, fmt.Errorf("could not prepare statement: %v", err)
@@ -103,7 +103,7 @@ func (r *IcecreamRepo) Reads(ids []int) ([]*domain.Icecream, error) {
 			dietary_certifications
 		FROM %s.icecream 
 		WHERE product_id IN (?)
-	`, r.db.Schema), ids)
+	`, r.db.Config().Schema), ids)
 
 	if err != nil {
 		return nil, err
@@ -112,10 +112,10 @@ func (r *IcecreamRepo) Reads(ids []int) ([]*domain.Icecream, error) {
 	// http://jmoiron.github.io/sqlx/#inQueries
 	// sqlx.In returns queries with the `?` bindvar, we can rebind it for our backend
 	// here: ? to $#
-	query = r.db.Rebind(query)
+	query = r.db.DB().Rebind(query)
 
 	var icecreamsDtos []dtos.Icecream
-	if err = r.db.Select(&icecreamsDtos, query, args...); err != nil {
+	if err = r.db.DB().Select(&icecreamsDtos, query, args...); err != nil {
 		return nil, err
 	}
 
@@ -133,7 +133,7 @@ func (r *IcecreamRepo) Reads(ids []int) ([]*domain.Icecream, error) {
 
 func (r *IcecreamRepo) Updates(icecreams []*domain.Icecream) (err error) {
 
-	tx := r.db.MustBegin()
+	tx := r.db.DB().MustBegin()
 
 	stmt, err := tx.Preparex(fmt.Sprintf(`
 		UPDATE %s.icecream SET 
@@ -145,7 +145,7 @@ func (r *IcecreamRepo) Updates(icecreams []*domain.Icecream) (err error) {
 		  allergy_info = $6,
 		  dietary_certifications = $7
 		WHERE product_id = $8
-	`, r.db.Schema))
+	`, r.db.Config().Schema))
 
 	if err != nil {
 		tx.Rollback()
@@ -182,12 +182,12 @@ func (r *IcecreamRepo) Updates(icecreams []*domain.Icecream) (err error) {
 
 func (r *IcecreamRepo) Deletes(ids []int) (err error) {
 
-	tx := r.db.MustBegin()
+	tx := r.db.DB().MustBegin()
 
 	stmt, err := tx.Preparex(fmt.Sprintf(`
 		DELETE FROM %s.icecream
 		WHERE product_id = $1
-	`, r.db.Schema))
+	`, r.db.Config().Schema))
 
 	if err != nil {
 		tx.Rollback()

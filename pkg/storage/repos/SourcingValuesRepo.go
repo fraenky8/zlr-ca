@@ -9,10 +9,10 @@ import (
 )
 
 type SourcingValuesRepo struct {
-	db *storage.Database
+	db storage.Database
 }
 
-func NewSourcingValuesRepo(db *storage.Database) *SourcingValuesRepo {
+func NewSourcingValuesRepo(db storage.Database) *SourcingValuesRepo {
 	return &SourcingValuesRepo{
 		db: db,
 	}
@@ -20,10 +20,10 @@ func NewSourcingValuesRepo(db *storage.Database) *SourcingValuesRepo {
 
 func (r *SourcingValuesRepo) Creates(sourcingValues domain.SourcingValues) ([]int, error) {
 
-	stmt, err := r.db.Preparex(fmt.Sprintf(`
+	stmt, err := r.db.DB().Preparex(fmt.Sprintf(`
 		INSERT INTO %s.sourcing_values (description) VALUES (TRIM($1)) 
 		ON CONFLICT (description) DO UPDATE SET description = TRIM($1) RETURNING id
-	`, r.db.Schema))
+	`, r.db.Config().Schema))
 
 	if err != nil {
 		return nil, fmt.Errorf("could not prepare statement: %v", err)
@@ -45,7 +45,7 @@ func (r *SourcingValuesRepo) Creates(sourcingValues domain.SourcingValues) ([]in
 func (r *SourcingValuesRepo) Read(icecreamProductId int) (domain.SourcingValues, error) {
 
 	var sourcingValues []*dtos.SourcingValues
-	err := r.db.Select(&sourcingValues, fmt.Sprintf(`
+	err := r.db.DB().Select(&sourcingValues, fmt.Sprintf(`
 		SELECT
   			id, description
 		FROM
@@ -53,7 +53,7 @@ func (r *SourcingValuesRepo) Read(icecreamProductId int) (domain.SourcingValues,
   			%s.icecream_has_sourcing_values AS ihsv
 		WHERE ihsv.sourcing_values_id = sv.id
 		AND ihsv.icecream_product_id = $1
-	`, r.db.Schema, r.db.Schema), icecreamProductId)
+	`, r.db.Config().Schema, r.db.Config().Schema), icecreamProductId)
 
 	if err != nil {
 		return nil, err
@@ -76,10 +76,10 @@ func (r *SourcingValuesRepo) Reads(icecreamProductIds []int) (sourcingValues []d
 func (r *SourcingValuesRepo) ReadAll() (domain.SourcingValues, error) {
 
 	var sourcingValues []*dtos.SourcingValues
-	err := r.db.Select(&sourcingValues, fmt.Sprintf(`
+	err := r.db.DB().Select(&sourcingValues, fmt.Sprintf(`
 		SELECT id, description
 		FROM %s.sourcing_values
-	`, r.db.Schema))
+	`, r.db.Config().Schema))
 
 	if err != nil {
 		return nil, err
@@ -90,7 +90,7 @@ func (r *SourcingValuesRepo) ReadAll() (domain.SourcingValues, error) {
 
 func (r *SourcingValuesRepo) Deletes(icecreamProductIds []int) (err error) {
 
-	tx := r.db.MustBegin()
+	tx := r.db.DB().MustBegin()
 	defer func() {
 		if err != nil {
 			tx.Rollback()
@@ -99,10 +99,10 @@ func (r *SourcingValuesRepo) Deletes(icecreamProductIds []int) (err error) {
 		tx.Commit()
 	}()
 
-	stmt, err := r.db.Preparex(fmt.Sprintf(`
+	stmt, err := r.db.DB().Preparex(fmt.Sprintf(`
 		DELETE FROM %s.icecream_has_sourcing_values
 		WHERE icecream_product_id = $1
-	`, r.db.Schema))
+	`, r.db.Config().Schema))
 
 	if err != nil {
 		return fmt.Errorf("could not prepare statement: %v", err)

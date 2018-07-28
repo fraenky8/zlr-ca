@@ -9,10 +9,10 @@ import (
 )
 
 type IngredientsRepo struct {
-	db *storage.Database
+	db storage.Database
 }
 
-func NewIngredientsRepo(db *storage.Database) *IngredientsRepo {
+func NewIngredientsRepo(db storage.Database) *IngredientsRepo {
 	return &IngredientsRepo{
 		db: db,
 	}
@@ -20,10 +20,10 @@ func NewIngredientsRepo(db *storage.Database) *IngredientsRepo {
 
 func (r *IngredientsRepo) Creates(ingredients domain.Ingredients) ([]int, error) {
 
-	stmt, err := r.db.Preparex(fmt.Sprintf(`
+	stmt, err := r.db.DB().Preparex(fmt.Sprintf(`
 		INSERT INTO %s.ingredients (name) VALUES (TRIM($1)) 
 		ON CONFLICT (name) DO UPDATE SET name = TRIM($1) RETURNING id
-	`, r.db.Schema))
+	`, r.db.Config().Schema))
 
 	if err != nil {
 		return nil, fmt.Errorf("could not prepare statement: %v", err)
@@ -45,7 +45,7 @@ func (r *IngredientsRepo) Creates(ingredients domain.Ingredients) ([]int, error)
 func (r *IngredientsRepo) Read(icecreamProductId int) (domain.Ingredients, error) {
 
 	var ingredients []*dtos.Ingredients
-	err := r.db.Select(&ingredients, fmt.Sprintf(`
+	err := r.db.DB().Select(&ingredients, fmt.Sprintf(`
 		SELECT
   			id, name
 		FROM
@@ -53,7 +53,7 @@ func (r *IngredientsRepo) Read(icecreamProductId int) (domain.Ingredients, error
   			%s.icecream_has_ingredients AS ihi
 		WHERE ihi.ingredients_id = i.id
 		AND ihi.icecream_product_id = $1
-	`, r.db.Schema, r.db.Schema), icecreamProductId)
+	`, r.db.Config().Schema, r.db.Config().Schema), icecreamProductId)
 
 	if err != nil {
 		return nil, err
@@ -76,10 +76,10 @@ func (r *IngredientsRepo) Reads(icecreamProductIds []int) (ingredients []domain.
 func (r *IngredientsRepo) ReadAll() (domain.Ingredients, error) {
 
 	var ingredients []*dtos.Ingredients
-	err := r.db.Select(&ingredients, fmt.Sprintf(`
+	err := r.db.DB().Select(&ingredients, fmt.Sprintf(`
 		SELECT id, name
 		FROM %s.ingredients
-	`, r.db.Schema))
+	`, r.db.Config().Schema))
 
 	if err != nil {
 		return nil, err

@@ -15,7 +15,7 @@ type Service struct {
 	IcecreamHasSourcingValuesService domain.IcecreamHasSourcingValuesService
 }
 
-func NewService(db *storage.Database) (*Service, error) {
+func NewService(db storage.Database) (*Service, error) {
 	s := &Service{
 		IcecreamService:                  NewIcecreamRepo(db),
 		IngredientService:                NewIngredientsRepo(db),
