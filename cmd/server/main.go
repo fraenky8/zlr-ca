@@ -27,11 +27,13 @@ func main() {
 
 	s, err := api.NewServer(
 		&api.ServerConfig{},
-		&api.Storage{
-			Db:                   db,
-			IcecreamService:      repos.NewIcecreamRepo(db),
-			IngredientService:    repos.NewIngredientsRepo(db),
-			SourcingValueService: repos.NewSourcingValuesRepo(db),
+		&storage.Service{
+			Db:                               db,
+			IcecreamService:                  repos.NewIcecreamRepo(db),
+			IngredientService:                repos.NewIngredientsRepo(db),
+			SourcingValueService:             repos.NewSourcingValuesRepo(db),
+			IcecreamHasIngredientsService:    repos.NewIcecreamHasIngredientsRepo(db),
+			IcecreamHasSourcingValuesService: repos.NewIcecreamHasSourcingValuesRepo(db),
 		},
 	)
 

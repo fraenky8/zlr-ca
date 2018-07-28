@@ -24,5 +24,11 @@ postgresql
 ##### why
 because of reasons
 
+#### Improvements
+- adding more tests
+- abstract / encapsulate database/storage
+- implement CRUD for ingredients & sourcing values
+- replace int to int64
+
 
 

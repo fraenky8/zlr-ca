@@ -6,7 +6,6 @@ import (
 	"github.com/fraenky8/zlr-ca/pkg/domain"
 	"github.com/fraenky8/zlr-ca/pkg/storage"
 	"github.com/fraenky8/zlr-ca/pkg/storage/dtos"
-	"github.com/jmoiron/sqlx"
 )
 
 type SourcingValuesRepo struct {
@@ -19,54 +18,28 @@ func NewSourcingValuesRepo(db *storage.Database) *SourcingValuesRepo {
 	}
 }
 
-func (r *SourcingValuesRepo) Create(sourcingValue domain.SourcingValue) (int, error) {
-
-	stmt, err := r.prepareCreateStmt()
-	if err != nil {
-		return 0, err
-	}
-
-	return r.create(stmt, sourcingValue)
-}
-
 func (r *SourcingValuesRepo) Creates(sourcingValues domain.SourcingValues) ([]int, error) {
 
-	stmt, err := r.prepareCreateStmt()
+	stmt, err := r.db.Preparex(fmt.Sprintf(`
+		INSERT INTO %s.sourcing_values (description) VALUES (TRIM($1)) 
+		ON CONFLICT (description) DO UPDATE SET description = TRIM($1) RETURNING id
+	`, r.db.Schema))
+
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("could not prepare statement: %v", err)
 	}
 
 	var ids []int
 	for _, sourcingValue := range sourcingValues {
-
-		id, err := r.create(stmt, sourcingValue)
+		var id int
+		err := stmt.Get(&id, sourcingValue)
 		if err != nil {
-			return nil, fmt.Errorf("could not create sourcing values: %v", err)
+			return nil, fmt.Errorf("could not create sourcing value: %v", err)
 		}
 		ids = append(ids, id)
 	}
 
 	return ids, nil
-}
-
-func (r *SourcingValuesRepo) prepareCreateStmt() (*sqlx.Stmt, error) {
-	stmt, err := r.db.Preparex(fmt.Sprintf(`
-		INSERT INTO %s.sourcing_values (description) VALUES (TRIM($1)) 
-		ON CONFLICT (description) DO UPDATE SET description = TRIM($1) RETURNING id
-	`, r.db.Schema))
-	if err != nil {
-		return nil, fmt.Errorf("could not prepare statement: %v", err)
-	}
-	return stmt, nil
-}
-
-func (r *SourcingValuesRepo) create(stmt *sqlx.Stmt, sourcingValue domain.SourcingValue) (int, error) {
-	var id int
-	err := stmt.Get(&id, sourcingValue)
-	if err != nil {
-		return 0, fmt.Errorf("could not create sourcing value: %v", err)
-	}
-	return id, nil
 }
 
 func (r *SourcingValuesRepo) Read(icecreamProductId int) (domain.SourcingValues, error) {
@@ -113,6 +86,35 @@ func (r *SourcingValuesRepo) ReadAll() (domain.SourcingValues, error) {
 	}
 
 	return r.convert(sourcingValues)
+}
+
+func (r *SourcingValuesRepo) Deletes(icecreamProductIds []int) (err error) {
+
+	tx := r.db.MustBegin()
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+			return
+		}
+		tx.Commit()
+	}()
+
+	stmt, err := r.db.Preparex(fmt.Sprintf(`
+		DELETE FROM %s.icecream_has_sourcing_values
+		WHERE icecream_product_id = $1
+	`, r.db.Schema))
+
+	if err != nil {
+		return fmt.Errorf("could not prepare statement: %v", err)
+	}
+
+	for _, id := range icecreamProductIds {
+		if _, err := stmt.Exec(id); err != nil {
+			return fmt.Errorf("could not delete sourcing values of icecream with productID = %d: %v", id, err)
+		}
+	}
+
+	return nil
 }
 
 func (r *SourcingValuesRepo) convert(sourcingValues []*dtos.SourcingValues) (domain.SourcingValues, error) {

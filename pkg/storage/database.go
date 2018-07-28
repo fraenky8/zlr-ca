@@ -3,9 +3,41 @@ package storage
 import (
 	"fmt"
 
+	"github.com/fraenky8/zlr-ca/pkg/domain"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 )
+
+type Service struct {
+	Db                               *Database
+	IcecreamService                  domain.IcecreamService
+	IngredientService                domain.IngredientService
+	SourcingValueService             domain.SourcingValueService
+	IcecreamHasIngredientsService    domain.IcecreamHasIngredientsService
+	IcecreamHasSourcingValuesService domain.IcecreamHasSourcingValuesService
+}
+
+func (s *Service) Verify() error {
+	if s.Db == nil {
+		return fmt.Errorf("no Database given")
+	}
+	if s.IcecreamService == nil {
+		return fmt.Errorf("no IcecreamService given")
+	}
+	if s.IngredientService == nil {
+		return fmt.Errorf("no IngredientService given")
+	}
+	if s.SourcingValueService == nil {
+		return fmt.Errorf("no SourcingValueService given")
+	}
+	if s.IcecreamHasIngredientsService == nil {
+		return fmt.Errorf("no IcecreamHasIngredientsService given")
+	}
+	if s.IcecreamHasSourcingValuesService == nil {
+		return fmt.Errorf("no IcecreamHasSourcingValuesService given")
+	}
+	return nil
+}
 
 type Database struct {
 	*sqlx.DB

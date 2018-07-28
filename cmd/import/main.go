@@ -35,7 +35,7 @@ func main() {
 		return
 	}
 
-	var icecreams []domain.Icecream
+	var icecreams []*domain.Icecream
 
 	if err = json.Unmarshal(b, &icecreams); err != nil {
 		fmt.Println(err)

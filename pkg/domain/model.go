@@ -5,16 +5,14 @@ import (
 	"strings"
 )
 
-// TODO Update & Delete
-
 type IcecreamService interface {
-	Create(icecream Icecream) (int, error)
-	Creates(icecreams []Icecream) ([]int, error)
-	Read(ids []int) ([]*Icecream, error)
+	Creates(icecreams []*Icecream) ([]int, error)
+	Reads(ids []int) ([]*Icecream, error)
+	Updates(icecreams []*Icecream) error
+	Deletes(ids []int) error
 }
 
 type IngredientService interface {
-	Create(ingredient Ingredient) (int, error)
 	Creates(ingredients Ingredients) ([]int, error)
 	Read(icecreamProductId int) (Ingredients, error)
 	Reads(icecreamProductIds []int) ([]Ingredients, error)
@@ -22,11 +20,19 @@ type IngredientService interface {
 }
 
 type SourcingValueService interface {
-	Create(sourcingValue SourcingValue) (int, error)
 	Creates(sourcingValues SourcingValues) ([]int, error)
 	Read(icecreamProductId int) (SourcingValues, error)
 	Reads(icecreamProductIds []int) ([]SourcingValues, error)
 	ReadAll() (SourcingValues, error)
+	Deletes(icecreamProductIds []int) error
+}
+
+type IcecreamHasIngredientsService interface {
+	Create(icecreamProductId int, ingredientIds []int) error
+}
+
+type IcecreamHasSourcingValuesService interface {
+	Create(icecreamProductId int, sourcingValueIds []int) error
 }
 
 type Ingredient string
