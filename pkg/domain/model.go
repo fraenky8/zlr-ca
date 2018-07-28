@@ -1,5 +1,10 @@
 package domain
 
+import (
+	"fmt"
+	"strings"
+)
+
 // TODO Update & Delete
 
 type IcecreamService interface {
@@ -27,8 +32,40 @@ type SourcingValueService interface {
 type Ingredient string
 type Ingredients []Ingredient
 
+func (i Ingredient) Verify() error {
+	if strings.TrimSpace(string(i)) == "" {
+		return fmt.Errorf("missing valid ingredient name")
+	}
+	return nil
+}
+
+func (is Ingredients) Verify() error {
+	for _, i := range is {
+		if err := i.Verify(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 type SourcingValue string
 type SourcingValues []SourcingValue
+
+func (s SourcingValue) Verify() error {
+	if strings.TrimSpace(string(s)) == "" {
+		return fmt.Errorf("missing valid sourcing value description")
+	}
+	return nil
+}
+
+func (sv SourcingValues) Verify() error {
+	for _, s := range sv {
+		if err := s.Verify(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
 
 type Icecream struct {
 	ProductID             string `json:"productId"`
@@ -41,4 +78,14 @@ type Icecream struct {
 	DietaryCertifications string `json:"dietary_certifications"`
 	SourcingValues        `json:"sourcing_values,omitempty"`
 	Ingredients           `json:"ingredients,omitempty"`
+}
+
+func (i Icecream) Verify() error {
+	if strings.TrimSpace(i.ProductID) == "" {
+		return fmt.Errorf("missing valid product id")
+	}
+	if strings.TrimSpace(i.Name) == "" {
+		return fmt.Errorf("missing valid name")
+	}
+	return nil
 }

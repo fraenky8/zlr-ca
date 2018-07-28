@@ -30,11 +30,6 @@ func Connect(cfg *Config) (*Database, error) {
 		return nil, fmt.Errorf("could not connect to database: %v", err)
 	}
 
-	_, err = sqldb.Exec(fmt.Sprintf(`SET search_path TO %s`, cfg.Schema))
-	if err != nil {
-		return nil, fmt.Errorf("could not set schema: %v", err)
-	}
-
 	return &Database{sqldb, cfg}, nil
 }
 

@@ -50,10 +50,10 @@ func (r *IngredientsRepo) Creates(ingredients domain.Ingredients) ([]int, error)
 }
 
 func (r *IngredientsRepo) prepareCreateStmt() (*sqlx.Stmt, error) {
-	stmt, err := r.db.Preparex(`
-		INSERT INTO ingredients (name) VALUES (TRIM($1)) 
+	stmt, err := r.db.Preparex(fmt.Sprintf(`
+		INSERT INTO %s.ingredients (name) VALUES (TRIM($1)) 
 		ON CONFLICT (name) DO UPDATE SET name = TRIM($1) RETURNING id
-	`)
+	`, r.db.Schema))
 	if err != nil {
 		return nil, fmt.Errorf("could not prepare statement: %v", err)
 	}
@@ -72,15 +72,15 @@ func (r *IngredientsRepo) create(stmt *sqlx.Stmt, ingredient domain.Ingredient) 
 func (r *IngredientsRepo) Read(icecreamProductId int) (domain.Ingredients, error) {
 
 	var ingredients []*dtos.Ingredients
-	err := r.db.Select(&ingredients, `
+	err := r.db.Select(&ingredients, fmt.Sprintf(`
 		SELECT
   			id, name
 		FROM
-  			ingredients AS i,
-  			icecream_has_ingredients AS ihi
+  			%s.ingredients AS i,
+  			%s.icecream_has_ingredients AS ihi
 		WHERE ihi.ingredients_id = i.id
 		AND ihi.icecream_product_id = $1
-	`, icecreamProductId)
+	`, r.db.Schema, r.db.Schema), icecreamProductId)
 
 	if err != nil {
 		return nil, err
@@ -103,10 +103,10 @@ func (r *IngredientsRepo) Reads(icecreamProductIds []int) (ingredients []domain.
 func (r *IngredientsRepo) ReadAll() (domain.Ingredients, error) {
 
 	var ingredients []*dtos.Ingredients
-	err := r.db.Select(&ingredients, `
+	err := r.db.Select(&ingredients, fmt.Sprintf(`
 		SELECT id, name
-		FROM ingredients
-	`)
+		FROM %s.ingredients
+	`, r.db.Schema))
 
 	if err != nil {
 		return nil, err

@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/fraenky8/zlr-ca/pkg/domain"
+	"github.com/fraenky8/zlr-ca/pkg/storage"
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
 )
@@ -26,6 +27,7 @@ func (s *ServerConfig) verify() error {
 }
 
 type Storage struct {
+	Db                   *storage.Database
 	IcecreamService      domain.IcecreamService
 	IngredientService    domain.IngredientService
 	SourcingValueService domain.SourcingValueService
@@ -72,19 +74,40 @@ func NewServer(config *ServerConfig, storage *Storage) (*Server, error) {
 	return s.setupRoutes(), nil
 }
 
-func (s *Server) Run() {
+func (s *Server) Run() error {
 	// gin.SetMode(gin.ReleaseMode)
-	log.Fatal(s.engine.Run(":" + s.config.Port))
+	return s.engine.Run(":" + s.config.Port)
 }
 
 func (s *Server) setupRoutes() *Server {
 	icecreams := s.engine.Group("/icecreams")
 	{
+		// CREATE
+		icecreams.POST("/", s.createIcecreams)
+		icecreams.PUT("/", s.createIcecreams)
+
+		// READ
 		icecreams.GET("/", s.readIcecream)
 		icecreams.GET("/:ids", s.readIcecream)
 		icecreams.GET("/:ids/", s.readIcecream)
 		icecreams.GET("/:ids/ingredients", s.readIcecreamIngredients)
 		icecreams.GET("/:ids/sourcingvalues", s.readIcecreamSourcingValues)
+
+		// UPDATE
+		icecreams.PUT("/:ids", s.updateIcecreams)
+		icecreams.PUT("/:ids/", s.updateIcecreams)
+		icecreams.PATCH("/", func(c *gin.Context) {
+			c.JSON(http.StatusMethodNotAllowed, FailStringResponse("updating the entire collections is not allowed"))
+		})
+		icecreams.PATCH("/:ids", s.updateIcecreams)
+		icecreams.PATCH("/:ids/", s.updateIcecreams)
+
+		// DELETE
+		icecreams.DELETE("/", func(c *gin.Context) {
+			c.JSON(http.StatusMethodNotAllowed, FailStringResponse("deleting the entire collections is not allowed"))
+		})
+		icecreams.DELETE("/:ids", s.deleteIcecreams)
+		icecreams.DELETE("/:ids/", s.deleteIcecreams)
 	}
 
 	ingredients := s.engine.Group("/ingredients")
@@ -202,6 +225,64 @@ func (s *Server) readSourcingValues(c *gin.Context) {
 	c.JSON(http.StatusOK, SuccessResponse(
 		&SourcingValueResponse{SourcingValue: sourcingValues}),
 	)
+}
+
+func (s *Server) createIcecreams(c *gin.Context) {
+
+	if !strings.Contains(c.ContentType(), "application/json") {
+		c.JSON(http.StatusBadRequest, FailStringResponse("only Content-Type: application/json is supported"))
+		return
+	}
+
+	var icecreams []*domain.Icecream
+	if err := c.ShouldBind(&icecreams); err != nil {
+		if err.Error() == "EOF" {
+			c.JSON(http.StatusBadRequest, FailStringResponse("no icecream data provided"))
+			return
+		}
+		c.JSON(http.StatusBadRequest, FailResponse(fmt.Errorf("faulty data provided: %v (forgot to wrap in []?)", err)))
+		return
+	}
+
+	// if one icecream fails, all icecreams fail - "all or nothing"
+	for k, icecream := range icecreams {
+		if err := icecream.Verify(); err != nil {
+			c.JSON(http.StatusBadRequest, FailResponse(fmt.Errorf("icecream #%d: %v", k, err)))
+			return
+		}
+
+		productId, err := strconv.Atoi(icecream.ProductID)
+		if err != nil {
+			log.Printf("faulty id: %v", err)
+			c.JSON(http.StatusBadRequest, FailResponse(fmt.Errorf("icecream #%d: faulty productId provided: %s", k, icecream.ProductID)))
+			return
+		}
+
+		if existingIcecream, _ := s.storage.IcecreamService.Read([]int{productId}); existingIcecream != nil {
+			c.JSON(http.StatusBadRequest, FailStringResponse("icecream with productId = "+icecream.ProductID+" already exists"))
+			return
+		}
+	}
+
+	for _, icecream := range icecreams {
+		if _, err := s.storage.IcecreamService.Create(*icecream); err != nil {
+			log.Printf("could not create icecream: %v", err)
+			c.JSON(http.StatusInternalServerError, ErrorResponse("a database error occured, please try again later"))
+			return
+		}
+	}
+
+	c.JSON(http.StatusCreated, SuccessResponse(
+		&IcecreamsResponse{Icecreams: icecreams},
+	))
+}
+
+func (s *Server) updateIcecreams(c *gin.Context) {
+	c.JSON(http.StatusNotImplemented, ErrorResponse("not implemented yet"))
+}
+
+func (s *Server) deleteIcecreams(c *gin.Context) {
+	c.JSON(http.StatusNotImplemented, ErrorResponse("not implemented yet"))
 }
 
 func convertIdsParam(sids string) (ids []int, err error) {

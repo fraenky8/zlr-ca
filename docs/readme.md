@@ -6,6 +6,8 @@ tried to stick to golang standard package layout
 
 [https://github.com/golang-standards/project-layout]
 
+[https://medium.com/@benbjohnson/standard-package-layout-7cdbc8391fc1]
+
 #### http-Framework
 ##### choice: 
 

@@ -13,19 +13,15 @@ create table if not exists zlr_ca.icecream
     constraint icecream_pkey
     primary key,
   name                   varchar(200) not null,
-  description            varchar(200) not null,
+  description            varchar(200),
   story                  text,
   image_open             varchar(200),
   image_closed           varchar(200),
   allergy_info           varchar(200),
   dietary_certifications varchar(50)
 );
-
 create unique index if not exists icecream_product_id_uindex
   on zlr_ca.icecream (product_id);
-
-create unique index if not exists icecream_name_uindex
-  on zlr_ca.icecream (name);
 
 --
 -- Table ingredients

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/fraenky8/zlr-ca/pkg/api"
 	"github.com/fraenky8/zlr-ca/pkg/storage"
@@ -27,34 +28,12 @@ func main() {
 	s, err := api.NewServer(
 		&api.ServerConfig{},
 		&api.Storage{
+			Db:                   db,
 			IcecreamService:      repos.NewIcecreamRepo(db),
 			IngredientService:    repos.NewIngredientsRepo(db),
 			SourcingValueService: repos.NewSourcingValuesRepo(db),
 		},
 	)
 
-	// r.POST("/icecream", createIcecream)
-
-	s.Run()
+	log.Fatal(s.Run())
 }
-
-// func createIcecream(c *gin.Context) {
-// 	var ice icecream
-//
-// 	err := c.BindJSON(&ice)
-// 	if err != nil {
-// 		if err.Error() == "EOF" {
-// 			c.JSON(400, gin.H{})
-// 			return
-// 		}
-// 		log.Printf("could not bind: %v", err)
-// 		c.Writer.WriteString("could not bind: " + err.Error())
-// 		return
-// 	}
-//
-// 	ice.ProductId = fmt.Sprintf("%v", len(icecreams)+1)
-// 	log.Printf("new icecream: %+v", ice)
-// 	icecreams = append(icecreams, ice)
-//
-// 	c.Writer.WriteString("new icecream created: " + ice.ProductId)
-// }

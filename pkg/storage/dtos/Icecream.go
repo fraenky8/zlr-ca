@@ -7,7 +7,7 @@ import (
 type Icecream struct {
 	ProductId             int            `db:"product_id"`
 	Name                  string         `db:"name"`
-	Description           string         `db:"description"`
+	Description           sql.NullString `db:"description"`
 	Story                 sql.NullString `db:"story"`
 	ImageOpen             sql.NullString `db:"image_open"`
 	ImageClosed           sql.NullString `db:"image_closed"`

@@ -17,12 +17,12 @@ func NewIcecreamHasSourcingValuesRepo(db *storage.Database) *IcecreamHasSourcing
 }
 
 func (r *IcecreamHasSourcingValuesRepo) Create(productId int, sourcingValueIds []int) error {
-	stmt, err := r.db.Preparex(`
-		INSERT INTO icecream_has_sourcing_values 
+	stmt, err := r.db.Preparex(fmt.Sprintf(`
+		INSERT INTO %s.icecream_has_sourcing_values 
 			(icecream_product_id, sourcing_values_id) 
 		VALUES ($1, $2) 
 		ON CONFLICT (icecream_product_id, sourcing_values_id) DO NOTHING
-	`)
+	`, r.db.Schema))
 
 	if err != nil {
 		return fmt.Errorf("could not prepare statement: %v", err)
