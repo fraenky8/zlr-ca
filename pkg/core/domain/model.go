@@ -3,24 +3,24 @@ package domain
 // TODO Update & Delete
 
 type Icecreamer interface {
-	Create(icecream Icecream) (int64, error)
-	Creates(icecreams []Icecream) ([]int64, error)
-	Read(ids []int64) ([]*Icecream, error)
+	Create(icecream Icecream) (int, error)
+	Creates(icecreams []Icecream) ([]int, error)
+	Read(ids []int) ([]*Icecream, error)
 }
 
 type Ingredienter interface {
-	Create(ingredient Ingredient) (int64, error)
-	Creates(ingredients Ingredients) ([]int64, error)
-	Read(icecreamProductId int64) (Ingredients, error)
-	Reads(icecreamProductIds []int64) ([]Ingredients, error)
+	Create(ingredient Ingredient) (int, error)
+	Creates(ingredients Ingredients) ([]int, error)
+	Read(icecreamProductId int) (Ingredients, error)
+	Reads(icecreamProductIds []int) ([]Ingredients, error)
 	ReadAll() (Ingredients, error)
 }
 
 type SourcingValuer interface {
-	Create(sourcingValue SourcingValue) (int64, error)
-	Creates(sourcingValues SourcingValues) ([]int64, error)
-	Read(icecreamProductId int64) (SourcingValues, error)
-	Reads(icecreamProductIds []int64) ([]SourcingValues, error)
+	Create(sourcingValue SourcingValue) (int, error)
+	Creates(sourcingValues SourcingValues) ([]int, error)
+	Read(icecreamProductId int) (SourcingValues, error)
+	Reads(icecreamProductIds []int) ([]SourcingValues, error)
 	ReadAll() (SourcingValues, error)
 }
 

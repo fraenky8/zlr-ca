@@ -19,7 +19,7 @@ func NewSourcingValuesRepo(db *storage.Database) *SourcingValuesRepo {
 	}
 }
 
-func (r *SourcingValuesRepo) Create(sourcingValue domain.SourcingValue) (int64, error) {
+func (r *SourcingValuesRepo) Create(sourcingValue domain.SourcingValue) (int, error) {
 
 	stmt, err := r.prepareCreateStmt()
 	if err != nil {
@@ -29,14 +29,14 @@ func (r *SourcingValuesRepo) Create(sourcingValue domain.SourcingValue) (int64, 
 	return r.create(stmt, sourcingValue)
 }
 
-func (r *SourcingValuesRepo) Creates(sourcingValues domain.SourcingValues) ([]int64, error) {
+func (r *SourcingValuesRepo) Creates(sourcingValues domain.SourcingValues) ([]int, error) {
 
 	stmt, err := r.prepareCreateStmt()
 	if err != nil {
 		return nil, err
 	}
 
-	var ids []int64
+	var ids []int
 	for _, sourcingValue := range sourcingValues {
 
 		id, err := r.create(stmt, sourcingValue)
@@ -60,8 +60,8 @@ func (r *SourcingValuesRepo) prepareCreateStmt() (*sqlx.Stmt, error) {
 	return stmt, nil
 }
 
-func (r *SourcingValuesRepo) create(stmt *sqlx.Stmt, sourcingValue domain.SourcingValue) (int64, error) {
-	var id int64
+func (r *SourcingValuesRepo) create(stmt *sqlx.Stmt, sourcingValue domain.SourcingValue) (int, error) {
+	var id int
 	err := stmt.Get(&id, sourcingValue)
 	if err != nil {
 		return 0, fmt.Errorf("could not create sourcing value: %v", err)
@@ -69,7 +69,7 @@ func (r *SourcingValuesRepo) create(stmt *sqlx.Stmt, sourcingValue domain.Sourci
 	return id, nil
 }
 
-func (r *SourcingValuesRepo) Read(icecreamProductId int64) (domain.SourcingValues, error) {
+func (r *SourcingValuesRepo) Read(icecreamProductId int) (domain.SourcingValues, error) {
 
 	var sourcingValues []*dtos.SourcingValues
 	err := r.db.Select(&sourcingValues, `
@@ -89,7 +89,7 @@ func (r *SourcingValuesRepo) Read(icecreamProductId int64) (domain.SourcingValue
 	return r.convert(sourcingValues)
 }
 
-func (r *SourcingValuesRepo) Reads(icecreamProductIds []int64) (sourcingValues []domain.SourcingValues, err error) {
+func (r *SourcingValuesRepo) Reads(icecreamProductIds []int) (sourcingValues []domain.SourcingValues, err error) {
 	for _, id := range icecreamProductIds {
 		sourcingValue, err := r.Read(id)
 		if err != nil {

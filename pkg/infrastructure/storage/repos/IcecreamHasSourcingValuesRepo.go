@@ -16,7 +16,7 @@ func NewIcecreamHasSourcingValuesRepo(db *storage.Database) *IcecreamHasSourcing
 	}
 }
 
-func (r *IcecreamHasSourcingValuesRepo) Create(productId int64, sourcingValueIds []int64) error {
+func (r *IcecreamHasSourcingValuesRepo) Create(productId int, sourcingValueIds []int) error {
 	stmt, err := r.db.Preparex(`
 		INSERT INTO icecream_has_sourcing_values 
 			(icecream_product_id, sourcing_values_id) 

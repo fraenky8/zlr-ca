@@ -19,7 +19,7 @@ func NewIngredientsRepo(db *storage.Database) *IngredientsRepo {
 	}
 }
 
-func (r *IngredientsRepo) Create(ingredient domain.Ingredient) (int64, error) {
+func (r *IngredientsRepo) Create(ingredient domain.Ingredient) (int, error) {
 
 	stmt, err := r.prepareCreateStmt()
 	if err != nil {
@@ -29,14 +29,14 @@ func (r *IngredientsRepo) Create(ingredient domain.Ingredient) (int64, error) {
 	return r.create(stmt, ingredient)
 }
 
-func (r *IngredientsRepo) Creates(ingredients domain.Ingredients) ([]int64, error) {
+func (r *IngredientsRepo) Creates(ingredients domain.Ingredients) ([]int, error) {
 
 	stmt, err := r.prepareCreateStmt()
 	if err != nil {
 		return nil, err
 	}
 
-	var ids []int64
+	var ids []int
 	for _, ingredient := range ingredients {
 
 		id, err := r.create(stmt, ingredient)
@@ -60,8 +60,8 @@ func (r *IngredientsRepo) prepareCreateStmt() (*sqlx.Stmt, error) {
 	return stmt, nil
 }
 
-func (r *IngredientsRepo) create(stmt *sqlx.Stmt, ingredient domain.Ingredient) (int64, error) {
-	var id int64
+func (r *IngredientsRepo) create(stmt *sqlx.Stmt, ingredient domain.Ingredient) (int, error) {
+	var id int
 	err := stmt.Get(&id, ingredient)
 	if err != nil {
 		return 0, fmt.Errorf("could not create ingredient: %v", err)
@@ -69,7 +69,7 @@ func (r *IngredientsRepo) create(stmt *sqlx.Stmt, ingredient domain.Ingredient) 
 	return id, nil
 }
 
-func (r *IngredientsRepo) Read(icecreamProductId int64) (domain.Ingredients, error) {
+func (r *IngredientsRepo) Read(icecreamProductId int) (domain.Ingredients, error) {
 
 	var ingredients []*dtos.Ingredients
 	err := r.db.Select(&ingredients, `
@@ -89,7 +89,7 @@ func (r *IngredientsRepo) Read(icecreamProductId int64) (domain.Ingredients, err
 	return r.convert(ingredients)
 }
 
-func (r *IngredientsRepo) Reads(icecreamProductIds []int64) (ingredients []domain.Ingredients, err error) {
+func (r *IngredientsRepo) Reads(icecreamProductIds []int) (ingredients []domain.Ingredients, err error) {
 	for _, id := range icecreamProductIds {
 		ingredient, err := r.Read(id)
 		if err != nil {

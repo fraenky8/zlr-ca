@@ -20,7 +20,7 @@ func NewIcecreamRepo(db *storage.Database) *IcecreamRepo {
 	}
 }
 
-func (r *IcecreamRepo) Create(icecream domain.Icecream) (int64, error) {
+func (r *IcecreamRepo) Create(icecream domain.Icecream) (int, error) {
 
 	stmt, err := r.prepareCreateStmt()
 	if err != nil {
@@ -30,14 +30,14 @@ func (r *IcecreamRepo) Create(icecream domain.Icecream) (int64, error) {
 	return r.create(stmt, icecream)
 }
 
-func (r *IcecreamRepo) Creates(icecreams []domain.Icecream) ([]int64, error) {
+func (r *IcecreamRepo) Creates(icecreams []domain.Icecream) ([]int, error) {
 
 	stmt, err := r.prepareCreateStmt()
 	if err != nil {
 		return nil, err
 	}
 
-	var ids []int64
+	var ids []int
 	for _, icecream := range icecreams {
 
 		id, err := r.create(stmt, icecream)
@@ -64,9 +64,9 @@ func (r *IcecreamRepo) prepareCreateStmt() (*sqlx.Stmt, error) {
 	return stmt, nil
 }
 
-func (r *IcecreamRepo) create(stmt *sqlx.Stmt, icecream domain.Icecream) (int64, error) {
+func (r *IcecreamRepo) create(stmt *sqlx.Stmt, icecream domain.Icecream) (int, error) {
 
-	var productId int64
+	var productId int
 	err := stmt.Get(&productId,
 		icecream.ProductID, icecream.Name, icecream.Description, icecream.Story,
 		icecream.ImageOpen, icecream.ImageClosed, icecream.AllergyInfo, icecream.DietaryCertifications,
@@ -98,7 +98,7 @@ func (r *IcecreamRepo) create(stmt *sqlx.Stmt, icecream domain.Icecream) (int64,
 	return productId, nil
 }
 
-func (r *IcecreamRepo) Read(ids []int64) ([]*domain.Icecream, error) {
+func (r *IcecreamRepo) Read(ids []int) ([]*domain.Icecream, error) {
 
 	query, args, err := sqlx.In(`
 		SELECT 

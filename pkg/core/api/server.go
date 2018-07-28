@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
+	"strings"
 
 	"github.com/fraenky8/zlr-ca/pkg/core/domain"
 	"github.com/gin-contrib/gzip"
@@ -100,7 +102,7 @@ func (s *Server) setupRoutes() *Server {
 
 func (s *Server) readIcecream(c *gin.Context) {
 
-	ids, err := ConvertIdsParam(c.Param("ids"))
+	ids, err := convertIdsParam(c.Param("ids"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, FailResponse(err))
 		return
@@ -127,7 +129,7 @@ func (s *Server) readIcecream(c *gin.Context) {
 
 func (s *Server) readIcecreamIngredients(c *gin.Context) {
 
-	ids, err := ConvertIdsParam(c.Param("ids"))
+	ids, err := convertIdsParam(c.Param("ids"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, FailResponse(err))
 		return
@@ -165,7 +167,7 @@ func (s *Server) readIngredients(c *gin.Context) {
 
 func (s *Server) readIcecreamSourcingValues(c *gin.Context) {
 
-	ids, err := ConvertIdsParam(c.Param("ids"))
+	ids, err := convertIdsParam(c.Param("ids"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, FailResponse(err))
 		return
@@ -200,4 +202,40 @@ func (s *Server) readSourcingValues(c *gin.Context) {
 	c.JSON(http.StatusOK, SuccessResponse(
 		&SourcingValueResponse{SourcingValue: sourcingValues}),
 	)
+}
+
+func convertIdsParam(sids string) (ids []int, err error) {
+
+	sids = strings.TrimSpace(sids)
+	if sids == "" {
+		return []int{}, fmt.Errorf("no id(s) provided")
+	}
+
+	for _, id := range strings.Split(sids, ",") {
+		tid := strings.TrimSpace(id)
+
+		// ignore empty ids
+		if tid == "" {
+			continue
+		}
+
+		id, parseErr := strconv.Atoi(tid)
+		if parseErr != nil {
+			log.Printf("faulty id: %v", parseErr)
+			err = parseErr
+			continue
+		}
+
+		ids = append(ids, id)
+	}
+
+	if len(ids) == 0 {
+		return []int{}, fmt.Errorf("no valid id(s) provided")
+	}
+
+	if err != nil {
+		return []int{}, fmt.Errorf("at least one invalid id detected: %v", err)
+	}
+
+	return ids, nil
 }
