@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/fraenky8/zlr-ca/pkg/core/domain"
+	"github.com/fraenky8/zlr-ca/pkg/domain"
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
 )
@@ -26,19 +26,19 @@ func (s *ServerConfig) verify() error {
 }
 
 type Storage struct {
-	Icecreamer     domain.Icecreamer
-	Ingredienter   domain.Ingredienter
-	SourcingValuer domain.SourcingValuer
+	IcecreamService      domain.IcecreamService
+	IngredientService    domain.IngredientService
+	SourcingValueService domain.SourcingValueService
 }
 
 func (s *Storage) verify() error {
-	if s.Icecreamer == nil {
+	if s.IcecreamService == nil {
 		return fmt.Errorf("no icecreamer given")
 	}
-	if s.Ingredienter == nil {
+	if s.IngredientService == nil {
 		return fmt.Errorf("no ingredienter given")
 	}
-	if s.SourcingValuer == nil {
+	if s.SourcingValueService == nil {
 		return fmt.Errorf("no sourcingValuer given")
 	}
 	return nil
@@ -108,7 +108,7 @@ func (s *Server) readIcecream(c *gin.Context) {
 		return
 	}
 
-	icecreams, err := s.storage.Icecreamer.Read(ids)
+	icecreams, err := s.storage.IcecreamService.Read(ids)
 	if err != nil {
 		log.Printf("could not get icecream: %v", err)
 		c.JSON(http.StatusInternalServerError, ErrorResponse("a database error occured, please try again later"))
@@ -135,7 +135,7 @@ func (s *Server) readIcecreamIngredients(c *gin.Context) {
 		return
 	}
 
-	ingredients, err := s.storage.Ingredienter.Reads(ids)
+	ingredients, err := s.storage.IngredientService.Reads(ids)
 	if err != nil {
 		log.Printf("could not get ingredients: %v", err)
 		c.JSON(http.StatusInternalServerError, ErrorResponse("a database error occured, please try again later"))
@@ -154,7 +154,7 @@ func (s *Server) readIcecreamIngredients(c *gin.Context) {
 }
 
 func (s *Server) readIngredients(c *gin.Context) {
-	ingredients, err := s.storage.Ingredienter.ReadAll()
+	ingredients, err := s.storage.IngredientService.ReadAll()
 	if err != nil {
 		log.Printf("could not get ingredients: %v", err)
 		c.JSON(http.StatusInternalServerError, ErrorResponse("a database error occured, please try again later"))
@@ -173,7 +173,7 @@ func (s *Server) readIcecreamSourcingValues(c *gin.Context) {
 		return
 	}
 
-	sourcingValues, err := s.storage.SourcingValuer.Reads(ids)
+	sourcingValues, err := s.storage.SourcingValueService.Reads(ids)
 	if err != nil {
 		log.Printf("could not get sourcing values: %v", err)
 		c.JSON(http.StatusInternalServerError, ErrorResponse("a database error occured, please try again later"))
@@ -193,7 +193,7 @@ func (s *Server) readIcecreamSourcingValues(c *gin.Context) {
 
 func (s *Server) readSourcingValues(c *gin.Context) {
 
-	sourcingValues, err := s.storage.SourcingValuer.ReadAll()
+	sourcingValues, err := s.storage.SourcingValueService.ReadAll()
 	if err != nil {
 		log.Printf("could not get sourcing values: %v", err)
 		c.JSON(http.StatusInternalServerError, ErrorResponse("a database error occured, please try again later"))

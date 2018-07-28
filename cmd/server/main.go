@@ -3,9 +3,9 @@ package main
 import (
 	"fmt"
 
-	"github.com/fraenky8/zlr-ca/pkg/core/api"
-	"github.com/fraenky8/zlr-ca/pkg/infrastructure/storage"
-	"github.com/fraenky8/zlr-ca/pkg/infrastructure/storage/repos"
+	"github.com/fraenky8/zlr-ca/pkg/api"
+	"github.com/fraenky8/zlr-ca/pkg/storage"
+	"github.com/fraenky8/zlr-ca/pkg/storage/repos"
 )
 
 func main() {
@@ -27,9 +27,9 @@ func main() {
 	s, err := api.NewServer(
 		&api.ServerConfig{},
 		&api.Storage{
-			Icecreamer:     repos.NewIcecreamRepo(db),
-			Ingredienter:   repos.NewIngredientsRepo(db),
-			SourcingValuer: repos.NewSourcingValuesRepo(db),
+			IcecreamService:      repos.NewIcecreamRepo(db),
+			IngredientService:    repos.NewIngredientsRepo(db),
+			SourcingValueService: repos.NewSourcingValuesRepo(db),
 		},
 	)
 

@@ -2,13 +2,13 @@ package domain
 
 // TODO Update & Delete
 
-type Icecreamer interface {
+type IcecreamService interface {
 	Create(icecream Icecream) (int, error)
 	Creates(icecreams []Icecream) ([]int, error)
 	Read(ids []int) ([]*Icecream, error)
 }
 
-type Ingredienter interface {
+type IngredientService interface {
 	Create(ingredient Ingredient) (int, error)
 	Creates(ingredients Ingredients) ([]int, error)
 	Read(icecreamProductId int) (Ingredients, error)
@@ -16,7 +16,7 @@ type Ingredienter interface {
 	ReadAll() (Ingredients, error)
 }
 
-type SourcingValuer interface {
+type SourcingValueService interface {
 	Create(sourcingValue SourcingValue) (int, error)
 	Creates(sourcingValues SourcingValues) ([]int, error)
 	Read(icecreamProductId int) (SourcingValues, error)

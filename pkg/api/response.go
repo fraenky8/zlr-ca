@@ -4,7 +4,7 @@ package api
 import (
 	"fmt"
 
-	"github.com/fraenky8/zlr-ca/pkg/core/domain"
+	"github.com/fraenky8/zlr-ca/pkg/domain"
 )
 
 const (

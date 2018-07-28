@@ -3,9 +3,9 @@ package repos
 import (
 	"fmt"
 
-	"github.com/fraenky8/zlr-ca/pkg/core/domain"
-	"github.com/fraenky8/zlr-ca/pkg/infrastructure/storage"
-	"github.com/fraenky8/zlr-ca/pkg/infrastructure/storage/dtos"
+	"github.com/fraenky8/zlr-ca/pkg/domain"
+	"github.com/fraenky8/zlr-ca/pkg/storage"
+	"github.com/fraenky8/zlr-ca/pkg/storage/dtos"
 	"github.com/jmoiron/sqlx"
 )
 

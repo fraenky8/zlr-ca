@@ -6,9 +6,9 @@ import (
 	"io/ioutil"
 	"time"
 
-	"github.com/fraenky8/zlr-ca/pkg/core/domain"
-	"github.com/fraenky8/zlr-ca/pkg/infrastructure/storage"
-	"github.com/fraenky8/zlr-ca/pkg/infrastructure/storage/repos"
+	"github.com/fraenky8/zlr-ca/pkg/domain"
+	"github.com/fraenky8/zlr-ca/pkg/storage"
+	"github.com/fraenky8/zlr-ca/pkg/storage/repos"
 )
 
 func main() {
