@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/fraenky8/zlr-ca/pkg/domain"
-	"github.com/fraenky8/zlr-ca/pkg/storage"
+	"github.com/fraenky8/zlr-ca/pkg/storage/repos"
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
 )
@@ -21,55 +21,67 @@ const (
 
 type ServerConfig struct {
 	Port string
+	Mode string
 }
 
 func (s *ServerConfig) Verify() error {
 	if s.Port == "" {
 		s.Port = DefaultPort
 	}
+	if s.Mode == "" {
+		s.Mode = gin.DebugMode
+	}
 	return nil
 }
 
 type Server struct {
-	config  *ServerConfig
-	storage *storage.Service
-	engine  *gin.Engine
+	config *ServerConfig
+	repo   *repos.Service
+	engine *gin.Engine
 }
 
-func NewServer(config *ServerConfig, storage *storage.Service) (*Server, error) {
+func NewServer(config *ServerConfig, repo *repos.Service) (*Server, error) {
 
 	if err := config.Verify(); err != nil {
 		return nil, fmt.Errorf("could not create server with config: %v", err)
 	}
 
-	if err := storage.Verify(); err != nil {
-		return nil, fmt.Errorf("could not create server with storage: %v", err)
+	if err := repo.Verify(); err != nil {
+		return nil, fmt.Errorf("could not create server with repo: %v", err)
 	}
 
+	gin.SetMode(config.Mode)
 	engine := gin.Default()
 	engine.Use(gzip.Gzip(gzip.DefaultCompression))
 
 	s := &Server{
-		config:  config,
-		storage: storage,
-		engine:  engine,
+		config: config,
+		repo:   repo,
+		engine: engine,
 	}
 
 	return s.setupRoutes(), nil
 }
 
 func (s *Server) Run() error {
-	// gin.SetMode(gin.ReleaseMode)
 	return s.engine.Run(":" + s.config.Port)
 }
 
+func (s *Server) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	s.engine.ServeHTTP(w, req)
+}
+
 func (s *Server) setupRoutes() *Server {
+
+	// empty "" routes here  to avoid a 307 redirect response
+	// so it only occures when query has trailing slash
+
 	icecreams := s.engine.Group("/icecreams")
 	{
-		create := icecreams.Group("/").Use(s.icecreamRequest)
+		create := icecreams.Group("").Use(s.icecreamRequest)
 		{
-			create.POST("/", s.createIcecreams)
-			create.PUT("/", s.createIcecreams)
+			create.POST("", s.createIcecreams)
+			create.PUT("", s.createIcecreams)
 		}
 
 		read := icecreams.Group("/")
@@ -150,7 +162,7 @@ func (s *Server) readIcecreams(c *gin.Context) {
 		return
 	}
 
-	icecreams, err := s.storage.IcecreamService.Reads(ids)
+	icecreams, err := s.repo.IcecreamService.Reads(ids)
 	if err != nil {
 		log.Printf("could not get icecream: %v", err)
 		c.JSON(http.StatusInternalServerError, ErrorResponse("a database error occured, please try again later"))
@@ -182,7 +194,7 @@ func (s *Server) readIcecreamIngredients(c *gin.Context) {
 		return
 	}
 
-	ingredients, err := s.storage.IngredientService.Reads(ids)
+	ingredients, err := s.repo.IngredientService.Reads(ids)
 	if err != nil {
 		log.Printf("could not get ingredients: %v", err)
 		c.JSON(http.StatusInternalServerError, ErrorResponse("a database error occured, please try again later"))
@@ -208,7 +220,7 @@ func (s *Server) readIcecreamSourcingValues(c *gin.Context) {
 		return
 	}
 
-	sourcingValues, err := s.storage.SourcingValueService.Reads(ids)
+	sourcingValues, err := s.repo.SourcingValueService.Reads(ids)
 	if err != nil {
 		log.Printf("could not get sourcing values: %v", err)
 		c.JSON(http.StatusInternalServerError, ErrorResponse("a database error occured, please try again later"))
@@ -244,13 +256,13 @@ func (s *Server) createIcecreams(c *gin.Context) {
 			return
 		}
 
-		if existingIcecream, _ := s.storage.IcecreamService.Reads([]int{productId}); existingIcecream != nil {
+		if existingIcecream, _ := s.repo.IcecreamService.Reads([]int{productId}); existingIcecream != nil {
 			c.JSON(http.StatusBadRequest, FailStringResponse("icecream with productId = "+icecream.ProductID+" already exists"))
 			return
 		}
 	}
 
-	if _, err := s.storage.IcecreamService.Creates(icecreams); err != nil {
+	if _, err := s.repo.IcecreamService.Creates(icecreams); err != nil {
 		c.JSON(http.StatusInternalServerError, ErrorResponse("a database error occured, please try again later"))
 		return
 	}
@@ -271,7 +283,7 @@ func (s *Server) updateIcecreams(c *gin.Context) {
 		}
 	}
 
-	if err := s.storage.IcecreamService.Updates(icecreams); err != nil {
+	if err := s.repo.IcecreamService.Updates(icecreams); err != nil {
 		c.JSON(http.StatusInternalServerError, FailResponse(err))
 		return
 	}
@@ -289,7 +301,7 @@ func (s *Server) deleteIcecreams(c *gin.Context) {
 		return
 	}
 
-	if err := s.storage.IcecreamService.Deletes(ids); err != nil {
+	if err := s.repo.IcecreamService.Deletes(ids); err != nil {
 		c.JSON(http.StatusInternalServerError, FailResponse(err))
 		return
 	}
@@ -305,7 +317,7 @@ func (s *Server) deleteIcecreamSourcingValues(c *gin.Context) {
 		return
 	}
 
-	if err := s.storage.SourcingValueService.Deletes(ids); err != nil {
+	if err := s.repo.SourcingValueService.Deletes(ids); err != nil {
 		c.JSON(http.StatusInternalServerError, FailResponse(err))
 		return
 	}
@@ -314,7 +326,7 @@ func (s *Server) deleteIcecreamSourcingValues(c *gin.Context) {
 }
 
 func (s *Server) readIngredients(c *gin.Context) {
-	ingredients, err := s.storage.IngredientService.ReadAll()
+	ingredients, err := s.repo.IngredientService.ReadAll()
 	if err != nil {
 		log.Printf("could not get ingredients: %v", err)
 		c.JSON(http.StatusInternalServerError, ErrorResponse("a database error occured, please try again later"))
@@ -325,7 +337,7 @@ func (s *Server) readIngredients(c *gin.Context) {
 }
 
 func (s *Server) readSourcingValues(c *gin.Context) {
-	sourcingValues, err := s.storage.SourcingValueService.ReadAll()
+	sourcingValues, err := s.repo.SourcingValueService.ReadAll()
 	if err != nil {
 		log.Printf("could not get sourcing values: %v", err)
 		c.JSON(http.StatusInternalServerError, ErrorResponse("a database error occured, please try again later"))

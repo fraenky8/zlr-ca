@@ -26,7 +26,7 @@ because of reasons
 
 #### Improvements
 - adding more tests
-- abstract / encapsulate database/storage
+- table driven tests / subtests
 - implement CRUD for ingredients & sourcing values
 - replace int to int64
 

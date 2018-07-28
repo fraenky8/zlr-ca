@@ -11,15 +11,15 @@ import (
 )
 
 type IcecreamRepo struct {
-	service storage.Service
+	db   *storage.Database
+	repo Service
 }
 
 func NewIcecreamRepo(db *storage.Database) *IcecreamRepo {
 
 	repo := &IcecreamRepo{}
 
-	service := storage.Service{
-		Db:                               db,
+	service := Service{
 		IcecreamService:                  repo,
 		IngredientService:                NewIngredientsRepo(db),
 		SourcingValueService:             NewSourcingValuesRepo(db),
@@ -27,24 +27,21 @@ func NewIcecreamRepo(db *storage.Database) *IcecreamRepo {
 		IcecreamHasSourcingValuesService: NewIcecreamHasSourcingValuesRepo(db),
 	}
 
-	repo.service = service
+	repo.db = db
+	repo.repo = service
 
 	return repo
 }
 
-func (r *IcecreamRepo) db() *storage.Database {
-	return r.service.Db
-}
-
 func (r *IcecreamRepo) Creates(icecreams []*domain.Icecream) ([]int, error) {
 
-	stmt, err := r.db().Preparex(fmt.Sprintf(`
+	stmt, err := r.db.Preparex(fmt.Sprintf(`
 		INSERT INTO %s.icecream
   			(product_id, name, description, story, image_open, image_closed, allergy_info, dietary_certifications)
 		VALUES
   			($1, $2, $3, $4, $5, $6, $7, $8)
 		RETURNING product_id
-	`, r.db().Schema))
+	`, r.db.Schema))
 
 	if err != nil {
 		return nil, fmt.Errorf("could not prepare statement: %v", err)
@@ -62,22 +59,22 @@ func (r *IcecreamRepo) Creates(icecreams []*domain.Icecream) ([]int, error) {
 			return nil, fmt.Errorf("could not create icecream: %v", err)
 		}
 
-		ids, err := r.service.IngredientService.Creates(icecream.Ingredients)
+		ids, err := r.repo.IngredientService.Creates(icecream.Ingredients)
 		if err != nil {
 			return nil, err
 		}
 
-		err = r.service.IcecreamHasIngredientsService.Create(productId, ids)
+		err = r.repo.IcecreamHasIngredientsService.Create(productId, ids)
 		if err != nil {
 			return nil, err
 		}
 
-		ids, err = r.service.SourcingValueService.Creates(icecream.SourcingValues)
+		ids, err = r.repo.SourcingValueService.Creates(icecream.SourcingValues)
 		if err != nil {
 			return nil, err
 		}
 
-		err = r.service.IcecreamHasSourcingValuesService.Create(productId, ids)
+		err = r.repo.IcecreamHasSourcingValuesService.Create(productId, ids)
 		if err != nil {
 			return nil, err
 		}
@@ -106,7 +103,7 @@ func (r *IcecreamRepo) Reads(ids []int) ([]*domain.Icecream, error) {
 			dietary_certifications
 		FROM %s.icecream 
 		WHERE product_id IN (?)
-	`, r.db().Schema), ids)
+	`, r.db.Schema), ids)
 
 	if err != nil {
 		return nil, err
@@ -115,10 +112,10 @@ func (r *IcecreamRepo) Reads(ids []int) ([]*domain.Icecream, error) {
 	// http://jmoiron.github.io/sqlx/#inQueries
 	// sqlx.In returns queries with the `?` bindvar, we can rebind it for our backend
 	// here: ? to $#
-	query = r.db().Rebind(query)
+	query = r.db.Rebind(query)
 
 	var icecreamsDtos []dtos.Icecream
-	if err = r.db().Select(&icecreamsDtos, query, args...); err != nil {
+	if err = r.db.Select(&icecreamsDtos, query, args...); err != nil {
 		return nil, err
 	}
 
@@ -136,7 +133,7 @@ func (r *IcecreamRepo) Reads(ids []int) ([]*domain.Icecream, error) {
 
 func (r *IcecreamRepo) Updates(icecreams []*domain.Icecream) (err error) {
 
-	tx := r.db().MustBegin()
+	tx := r.db.MustBegin()
 
 	stmt, err := tx.Preparex(fmt.Sprintf(`
 		UPDATE %s.icecream SET 
@@ -148,7 +145,7 @@ func (r *IcecreamRepo) Updates(icecreams []*domain.Icecream) (err error) {
 		  allergy_info = $6,
 		  dietary_certifications = $7
 		WHERE product_id = $8
-	`, r.db().Schema))
+	`, r.db.Schema))
 
 	if err != nil {
 		tx.Rollback()
@@ -185,12 +182,12 @@ func (r *IcecreamRepo) Updates(icecreams []*domain.Icecream) (err error) {
 
 func (r *IcecreamRepo) Deletes(ids []int) (err error) {
 
-	tx := r.db().MustBegin()
+	tx := r.db.MustBegin()
 
 	stmt, err := tx.Preparex(fmt.Sprintf(`
 		DELETE FROM %s.icecream
 		WHERE product_id = $1
-	`, r.db().Schema))
+	`, r.db.Schema))
 
 	if err != nil {
 		tx.Rollback()

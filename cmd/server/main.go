@@ -25,17 +25,20 @@ func main() {
 	}
 	defer db.Close()
 
+	repository, err := repos.NewService(db)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
 	s, err := api.NewServer(
 		&api.ServerConfig{},
-		&storage.Service{
-			Db:                               db,
-			IcecreamService:                  repos.NewIcecreamRepo(db),
-			IngredientService:                repos.NewIngredientsRepo(db),
-			SourcingValueService:             repos.NewSourcingValuesRepo(db),
-			IcecreamHasIngredientsService:    repos.NewIcecreamHasIngredientsRepo(db),
-			IcecreamHasSourcingValuesService: repos.NewIcecreamHasSourcingValuesRepo(db),
-		},
+		repository,
 	)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 
 	log.Fatal(s.Run())
 }
