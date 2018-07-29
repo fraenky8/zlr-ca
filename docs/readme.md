@@ -1,8 +1,8 @@
-# Design Decisions
-> "Document your architectural decisions" 
+# Simple REST-API  - Design Decisions
+> "Document your architectural decisions and automate the setup" 
 
 ### App Structure
-tried to stick to golang standard package layout 
+Tried to stick to golang standard package layout:
 
 [https://github.com/golang-standards/project-layout]
 
@@ -50,12 +50,11 @@ postgresql
 why relational: because I'm most experienced and family with
 
 ### Deployment
-docker-compose
+With `docker-compose` consisting of a `postgres` and an `zlrca` service.
 
 ### Improvements
-- config by env-vars, commandline params, ... 
 - adding more tests
-- table driven tests / subtests
+  - table driven tests / subtests
 - implement CRUD for ingredients & sourcing values
 - replace int to int64
 - graceful shutdown

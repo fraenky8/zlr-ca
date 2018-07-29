@@ -23,7 +23,6 @@ services:
     - postgres
     depends_on:
       - postgres
-#    command: ["/wait-for-it.sh", "-t", "0", "postgres:5432", "--", "server", "-u postgres", "-p mysecretpassword", "-d postgres", "-s zlr_ca"]
     command: ["/wait-for-it-wrapper.sh"]
 
 volumes:
