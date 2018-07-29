@@ -8,6 +8,8 @@ Tried to stick to golang standard package layout:
 
 [https://medium.com/@benbjohnson/standard-package-layout-7cdbc8391fc1]
 
+Designed to match a clean architecture to enabling better testing (dependecy injections, decoupling), maintainance and extension.
+
 ### http-Framework
 ##### choice: 
 
@@ -17,7 +19,7 @@ gin [https://github.com/gin-gonic/gin]
 read several posts about other frameworks to compare but decided to stick with gin 
 because i worked with it already and it is quite stable and popular
 
-### authorization
+### Authorization
 Using `BasicAuth` from the examples. To communicate with the api, use one of the following accounts:
 ```
 var accounts = gin.Accounts{
@@ -38,7 +40,19 @@ var accounts = gin.Accounts{
 jsend [https://labs.omniti.com/labs/jsend]
 
 ##### why 
-plain and simple, less overhead
+plain and simple, less overhead:
+
+```
+{
+    "status": "[success|fail|error]",
+    ["message": "some info here"]
+    "data": {
+        "icecreams": [
+            { ... }
+        ]
+    }
+}
+```
 
 ### Database
 ##### choice: 
@@ -50,7 +64,8 @@ postgresql
 why relational: because I'm most experienced and family with
 
 ### Deployment
-With `docker-compose` consisting of a `postgres` and an `zlrca` service.
+With `docker-compose` consisting of a `postgres` and an `zlrca` service. Database sets up with all data provided in 
+`cmd/import/icecream.json`. Rest-Api is running default on Port `8080`.
 
 ### Improvements
 - adding more tests
