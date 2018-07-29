@@ -19,6 +19,13 @@ const (
 	RequestIcecreamKey = "icecreams"
 )
 
+// accounts holds some fake accounts for BasicAuth middleware
+var accounts = gin.Accounts{
+	"frank": "fr4nk!",
+	"seb":   "th!rstY",
+	"sarah": "!c3cre4M",
+}
+
 type ServerConfig struct {
 	Port string
 	Mode string
@@ -73,10 +80,14 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 func (s *Server) setupRoutes() *Server {
 
+	s.engine.GET("/", func(c *gin.Context) {
+		c.JSON(http.StatusOK, FailStringResponse("no resources here, go to /icecreams"))
+	})
+
 	// empty "" routes here  to avoid a 307 redirect response
 	// so it only occures when query has trailing slash
 
-	icecreams := s.engine.Group("/icecreams")
+	icecreams := s.engine.Group("/icecreams", gin.BasicAuth(accounts))
 	{
 		create := icecreams.Group("").Use(s.icecreamRequest)
 		{
@@ -137,6 +148,11 @@ func (s *Server) icecreamRequest(c *gin.Context) {
 
 	if !strings.Contains(c.ContentType(), "application/json") {
 		c.AbortWithStatusJSON(http.StatusBadRequest, FailStringResponse("only Content-Type: application/json is supported"))
+		return
+	}
+
+	if c.Request.Body == nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, FailStringResponse("no icecream data provided"))
 		return
 	}
 

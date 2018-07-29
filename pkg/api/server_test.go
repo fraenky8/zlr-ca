@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -16,8 +17,13 @@ import (
 )
 
 const (
+	basicAuthHeaderFrank = `Basic ZnJhbms6ZnI0bmsh`
+
 	requestContentType  = "application/json"
 	responseContentType = "application/json; charset=utf-8"
+
+	icecreamProductId1 = "602"
+	icecreamProductId2 = "610"
 
 	icecream = `
 		[{
@@ -70,6 +76,172 @@ const (
 	`
 )
 
+func TestReadIcecream_withoutAuthorization_returnsStatusUnauthorized(t *testing.T) {
+	// given
+	is := &mock.IcecreamService{}
+
+	s, err := NewServer(
+		&ServerConfig{Mode: gin.ReleaseMode},
+		&repos.Repository{
+			IcecreamService:                  is,
+			IngredientService:                &mock.IngredientService{},
+			SourcingValueService:             &mock.SourcingValueService{},
+			IcecreamHasIngredientsService:    &mock.IcecreamHasIngredientsService{},
+			IcecreamHasSourcingValuesService: &mock.IcecreamHasSourcingValuesService{},
+		},
+	)
+	assert.Nil(t, err)
+
+	// when
+	w := httptest.NewRecorder()
+	r, err := http.NewRequest("GET", "/icecreams/"+icecreamProductId1, nil)
+	assert.Nil(t, err)
+
+	s.ServeHTTP(w, r)
+
+	// then
+	assert.Equal(t, http.StatusUnauthorized, w.Code)
+}
+
+func TestReadIcecream_withInvalidAuthorization_returnsStatusUnauthorized(t *testing.T) {
+	// given
+	is := &mock.IcecreamService{}
+
+	s, err := NewServer(
+		&ServerConfig{Mode: gin.ReleaseMode},
+		&repos.Repository{
+			IcecreamService:                  is,
+			IngredientService:                &mock.IngredientService{},
+			SourcingValueService:             &mock.SourcingValueService{},
+			IcecreamHasIngredientsService:    &mock.IcecreamHasIngredientsService{},
+			IcecreamHasSourcingValuesService: &mock.IcecreamHasSourcingValuesService{},
+		},
+	)
+	assert.Nil(t, err)
+
+	// when
+	w := httptest.NewRecorder()
+	r, err := http.NewRequest("GET", "/icecreams/"+icecreamProductId1, nil)
+	assert.Nil(t, err)
+	r.Header.Set("Authorization", "Basic s0m3th!ng")
+
+	s.ServeHTTP(w, r)
+
+	// then
+	assert.Equal(t, http.StatusUnauthorized, w.Code)
+}
+
+func TestReadSingleIcecream_withValidAuthorization_returnsStatusOkAndSingleIcecreamData(t *testing.T) {
+	// given
+	is := &mock.IcecreamService{}
+
+	s, err := NewServer(
+		&ServerConfig{Mode: gin.ReleaseMode},
+		&repos.Repository{
+			IcecreamService:                  is,
+			IngredientService:                &mock.IngredientService{},
+			SourcingValueService:             &mock.SourcingValueService{},
+			IcecreamHasIngredientsService:    &mock.IcecreamHasIngredientsService{},
+			IcecreamHasSourcingValuesService: &mock.IcecreamHasSourcingValuesService{},
+		},
+	)
+	assert.Nil(t, err)
+
+	is.ReadsFn = func(ids []int) ([]*domain.Icecream, error) {
+		return []*domain.Icecream{{
+			ProductID: icecreamProductId1,
+			// ... more data
+		}}, nil
+	}
+
+	// when
+	w := httptest.NewRecorder()
+	r, err := http.NewRequest("GET", "/icecreams/"+icecreamProductId1, nil)
+	assert.Nil(t, err)
+	r.Header.Set("Authorization", basicAuthHeaderFrank)
+
+	s.ServeHTTP(w, r)
+
+	// then
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	response := struct {
+		Status string
+		Data   struct {
+			Icecream struct {
+				domain.Icecream
+			}
+		}
+	}{}
+
+	err = json.Unmarshal(w.Body.Bytes(), &response)
+	assert.Nil(t, err)
+
+	assert.Equal(t, StatusOk, response.Status)
+	assert.NotEmpty(t, response.Data)
+	assert.Equal(t, icecreamProductId1, response.Data.Icecream.ProductID)
+
+	assert.True(t, is.ReadsInvoked)
+}
+
+func TestReadMultipleIcecream_withValidAuthorization_returnsStatusOkAndMultipleIcecreamData(t *testing.T) {
+	// given
+	is := &mock.IcecreamService{}
+
+	s, err := NewServer(
+		&ServerConfig{Mode: gin.ReleaseMode},
+		&repos.Repository{
+			IcecreamService:                  is,
+			IngredientService:                &mock.IngredientService{},
+			SourcingValueService:             &mock.SourcingValueService{},
+			IcecreamHasIngredientsService:    &mock.IcecreamHasIngredientsService{},
+			IcecreamHasSourcingValuesService: &mock.IcecreamHasSourcingValuesService{},
+		},
+	)
+	assert.Nil(t, err)
+
+	is.ReadsFn = func(ids []int) ([]*domain.Icecream, error) {
+		return []*domain.Icecream{{
+			ProductID: icecreamProductId1,
+			// ... more data
+		}, {
+			ProductID: icecreamProductId2,
+			// ... more data
+		}}, nil
+	}
+
+	// when
+	w := httptest.NewRecorder()
+	r, err := http.NewRequest("GET", "/icecreams/"+icecreamProductId1+","+icecreamProductId2, nil)
+	assert.Nil(t, err)
+	r.Header.Set("Authorization", basicAuthHeaderFrank)
+
+	s.ServeHTTP(w, r)
+
+	// then
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	response := struct {
+		Status string
+		Data   struct {
+			Icecreams []struct {
+				domain.Icecream
+			}
+		}
+	}{}
+
+	err = json.Unmarshal(w.Body.Bytes(), &response)
+	assert.Nil(t, err)
+
+	assert.Equal(t, StatusOk, response.Status)
+	assert.NotEmpty(t, response.Data)
+	assert.Equal(t, 2, len(response.Data.Icecreams))
+	assert.Equal(t, icecreamProductId1, response.Data.Icecreams[0].ProductID)
+	assert.Equal(t, icecreamProductId2, response.Data.Icecreams[1].ProductID)
+
+	assert.True(t, is.ReadsInvoked)
+}
+
 func TestCreateIcecream_withWrongContentType_returnsFailResponse(t *testing.T) {
 
 	// given
@@ -91,6 +263,44 @@ func TestCreateIcecream_withWrongContentType_returnsFailResponse(t *testing.T) {
 	w := httptest.NewRecorder()
 	r, err := http.NewRequest("POST", "/icecreams", nil)
 	assert.Nil(t, err)
+	r.Header.Set("Authorization", basicAuthHeaderFrank)
+
+	s.ServeHTTP(w, r)
+
+	// then
+	assert.Equal(t, responseContentType, w.HeaderMap.Get("Content-Type"))
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+
+	var response Response
+	err = json.Unmarshal(w.Body.Bytes(), &response)
+	assert.Nil(t, err)
+
+	assert.Equal(t, StatusFail, response.Status)
+	assert.NotEmpty(t, response.Data)
+}
+
+func TestCreateIcecream_withNilBody_returnsFailResponse(t *testing.T) {
+
+	// given
+	is := &mock.IcecreamService{}
+
+	s, err := NewServer(
+		&ServerConfig{Mode: gin.ReleaseMode},
+		&repos.Repository{
+			IcecreamService:                  is,
+			IngredientService:                &mock.IngredientService{},
+			SourcingValueService:             &mock.SourcingValueService{},
+			IcecreamHasIngredientsService:    &mock.IcecreamHasIngredientsService{},
+			IcecreamHasSourcingValuesService: &mock.IcecreamHasSourcingValuesService{},
+		},
+	)
+	assert.Nil(t, err)
+
+	// when
+	w := httptest.NewRecorder()
+	r, err := http.NewRequest("POST", "/icecreams", nil)
+	r.Header.Set("Content-Type", requestContentType)
+	r.Header.Set("Authorization", basicAuthHeaderFrank)
 
 	s.ServeHTTP(w, r)
 
@@ -127,6 +337,7 @@ func TestCreateIcecream_withEmptyBody_returnsFailResponse(t *testing.T) {
 	w := httptest.NewRecorder()
 	r, err := http.NewRequest("POST", "/icecreams", strings.NewReader(""))
 	r.Header.Set("Content-Type", requestContentType)
+	r.Header.Set("Authorization", basicAuthHeaderFrank)
 
 	s.ServeHTTP(w, r)
 
@@ -163,6 +374,7 @@ func TestCreateIcecream_withFaultyData_returnsFailResponse(t *testing.T) {
 	w := httptest.NewRecorder()
 	r, err := http.NewRequest("POST", "/icecreams", strings.NewReader(`{"data":["foo", "bar"]"}`))
 	r.Header.Set("Content-Type", requestContentType)
+	r.Header.Set("Authorization", basicAuthHeaderFrank)
 
 	s.ServeHTTP(w, r)
 
@@ -199,6 +411,7 @@ func TestCreateIcecream_withMissingProductId_returnsFailResponse(t *testing.T) {
 	w := httptest.NewRecorder()
 	r, err := http.NewRequest("POST", "/icecreams", strings.NewReader(missingProductIdIcecream))
 	r.Header.Set("Content-Type", requestContentType)
+	r.Header.Set("Authorization", basicAuthHeaderFrank)
 
 	s.ServeHTTP(w, r)
 
@@ -235,6 +448,7 @@ func TestCreateIcecream_withMissingName_returnsFailResponse(t *testing.T) {
 	w := httptest.NewRecorder()
 	r, err := http.NewRequest("POST", "/icecreams", strings.NewReader(missingNameIcecream))
 	r.Header.Set("Content-Type", requestContentType)
+	r.Header.Set("Authorization", basicAuthHeaderFrank)
 
 	s.ServeHTTP(w, r)
 
@@ -271,6 +485,7 @@ func TestCreateIcecream_withFaultyProductId_returnsFailResponse(t *testing.T) {
 	w := httptest.NewRecorder()
 	r, err := http.NewRequest("POST", "/icecreams", strings.NewReader(faultyProductIdIcecream))
 	r.Header.Set("Content-Type", requestContentType)
+	r.Header.Set("Authorization", basicAuthHeaderFrank)
 
 	s.ServeHTTP(w, r)
 
@@ -316,6 +531,7 @@ func TestCreateIcecream_withExistingIcecream_returnsFailResponse(t *testing.T) {
 	w := httptest.NewRecorder()
 	r, err := http.NewRequest("POST", "/icecreams", strings.NewReader(icecream))
 	r.Header.Set("Content-Type", requestContentType)
+	r.Header.Set("Authorization", basicAuthHeaderFrank)
 
 	s.ServeHTTP(w, r)
 
@@ -363,6 +579,7 @@ func TestCreateIcecream_withNewIcecreamButDatabaseError_returnsErrorResponse(t *
 	w := httptest.NewRecorder()
 	r, err := http.NewRequest("POST", "/icecreams", strings.NewReader(icecream))
 	r.Header.Set("Content-Type", requestContentType)
+	r.Header.Set("Authorization", basicAuthHeaderFrank)
 
 	s.ServeHTTP(w, r)
 
@@ -404,13 +621,15 @@ func TestCreateIcecream_withNewValidIcecream_returnsSuccessResponse(t *testing.T
 	}
 
 	is.CreatesFn = func(icecreams []*domain.Icecream) ([]int, error) {
-		return []int{602}, nil
+		id, _ := strconv.Atoi(icecreamProductId1)
+		return []int{id}, nil
 	}
 
 	// when
 	w := httptest.NewRecorder()
 	r, err := http.NewRequest("POST", "/icecreams", strings.NewReader(icecream))
 	r.Header.Set("Content-Type", requestContentType)
+	r.Header.Set("Authorization", basicAuthHeaderFrank)
 
 	s.ServeHTTP(w, r)
 
@@ -432,7 +651,7 @@ func TestCreateIcecream_withNewValidIcecream_returnsSuccessResponse(t *testing.T
 
 	assert.Equal(t, StatusOk, response.Status)
 	assert.NotEmpty(t, response.Data)
-	assert.Equal(t, "602", response.Data.Icecreams[0].ProductID)
+	assert.Equal(t, icecreamProductId1, response.Data.Icecreams[0].ProductID)
 
 	assert.True(t, is.ReadsInvoked)
 	assert.True(t, is.CreatesInvoked)
