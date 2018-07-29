@@ -9,16 +9,12 @@ import (
 	"github.com/fraenky8/zlr-ca/pkg/storage/repos"
 )
 
+// go run main.go -h 192.168.99.100 -pt 5432 -u postgres -p mysecretpassword -d postgres -s zlr_ca
 func main() {
 
-	db, err := storage.NewPostgres(&storage.Config{
-		Host:     "192.168.99.100",
-		Port:     "5432",
-		Username: "postgres",
-		Password: "mysecretpassword",
-		Database: "postgres",
-		Schema:   "zlr_ca",
-	})
+	db, err := storage.NewPostgres(
+		storage.NewConfigByCmdArgs(),
+	)
 
 	if err != nil {
 		fmt.Println(err)

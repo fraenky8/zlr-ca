@@ -49,6 +49,9 @@ postgresql
 
 why relational: because I'm most experienced and family with
 
+### Deployment
+docker-compose
+
 ### Improvements
 - config by env-vars, commandline params, ... 
 - adding more tests

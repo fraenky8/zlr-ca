@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"flag"
 	"fmt"
 
 	"github.com/jmoiron/sqlx"
@@ -14,6 +15,20 @@ type Config struct {
 	Password string
 	Database string
 	Schema   string
+}
+
+func NewConfigByCmdArgs() *Config {
+	config := &Config{}
+
+	flag.StringVar(&config.Host, "h", "192.168.99.100", "database host")
+	flag.StringVar(&config.Port, "pt", "5432", "database port")
+	flag.StringVar(&config.Username, "u", "postgres", "user to connect to the database")
+	flag.StringVar(&config.Password, "p", "mysecretpassword", "password für user to connect to the database")
+	flag.StringVar(&config.Database, "d", "postgres", "name of database")
+	flag.StringVar(&config.Schema, "s", "zlr_ca", "schema to use in database")
+	flag.Parse()
+
+	return config
 }
 
 type Database interface {

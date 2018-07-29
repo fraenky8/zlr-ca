@@ -1,0 +1,30 @@
+version: '2'
+
+services:
+  postgres:
+    container_name: zlr-ca-psql
+    image: zlr-ca-psql:current
+    build: ../build/db
+    volumes:
+    - psqlvolume:/var/lib/postgresql_zlr/data
+    ports:
+    - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: "mysecretpassword"
+    restart: always
+
+  zlrca:
+    container_name: zlr-ca
+    build: ../build/zlr-ca
+    image: zlr-ca:current
+    ports:
+    - "8080:8080"
+    links:
+    - postgres
+    depends_on:
+      - postgres
+#    command: ["/wait-for-it.sh", "-t", "0", "postgres:5432", "--", "server", "-u postgres", "-p mysecretpassword", "-d postgres", "-s zlr_ca"]
+    command: ["/wait-for-it-wrapper.sh"]
+
+volumes:
+  psqlvolume: {}
