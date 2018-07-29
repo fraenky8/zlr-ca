@@ -20,7 +20,8 @@ read several posts about other frameworks to compare but decided to stick with g
 because i worked with it already and it is quite stable and popular
 
 ### Authorization
-Using `BasicAuth` from the examples. To communicate with the api, use one of the following accounts:
+Using `BasicAuth` from the `gin` examples. To communicate with the api, use one of the following 
+hardcoded accounts:
 ```
 var accounts = gin.Accounts{
 	"frank": "fr4nk!",
@@ -73,7 +74,7 @@ With `docker-compose` consisting of a `postgres` and an `zlrca` service. Databas
 - implement CRUD for ingredients & sourcing values
 - replace int to int64
 - graceful shutdown
-- moving repos in subfolder postgres because they implemented postgres sql syntax and cant therefore not reused
+- moving repos in subfolder postgres because they implement postgres sql syntax and therefore cannot be reused
 
 
 
