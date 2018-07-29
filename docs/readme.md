@@ -1,14 +1,14 @@
-## Design Decisions
-"Document your architectural decisions" 
+# Design Decisions
+> "Document your architectural decisions" 
 
-#### App Structure
+### App Structure
 tried to stick to golang standard package layout 
 
 [https://github.com/golang-standards/project-layout]
 
 [https://medium.com/@benbjohnson/standard-package-layout-7cdbc8391fc1]
 
-#### http-Framework
+### http-Framework
 ##### choice: 
 
 gin [https://github.com/gin-gonic/gin]
@@ -17,7 +17,7 @@ gin [https://github.com/gin-gonic/gin]
 read several posts about other frameworks to compare but decided to stick with gin 
 because i worked with it already and it is quite stable and popular
 
-#### authorization
+### authorization
 Using `BasicAuth` from the examples. To communicate with the api, use one of the following accounts:
 ```
 var accounts = gin.Accounts{
@@ -33,14 +33,14 @@ var accounts = gin.Accounts{
  Authorization: Basic ZnJhbms6ZnI0bmsh
  ```
 
-#### json-Response structure
+### json-Response structure
 ##### choice
 jsend [https://labs.omniti.com/labs/jsend]
 
 ##### why 
 plain and simple, less overhead
 
-#### Database
+### Database
 ##### choice: 
 postgresql
 
@@ -49,7 +49,7 @@ postgresql
 
 why relational: because I'm most experienced and family with
 
-#### Improvements
+### Improvements
 - config by env-vars, commandline params, ... 
 - adding more tests
 - table driven tests / subtests
