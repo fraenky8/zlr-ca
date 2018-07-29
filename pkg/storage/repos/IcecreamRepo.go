@@ -12,14 +12,14 @@ import (
 
 type IcecreamRepo struct {
 	db   storage.Database
-	repo Service
+	repo Repository
 }
 
 func NewIcecreamRepo(db storage.Database) *IcecreamRepo {
 
 	repo := &IcecreamRepo{}
 
-	service := Service{
+	service := Repository{
 		IcecreamService:                  repo,
 		IngredientService:                NewIngredientsRepo(db),
 		SourcingValueService:             NewSourcingValuesRepo(db),

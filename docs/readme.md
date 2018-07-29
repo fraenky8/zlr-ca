@@ -17,6 +17,13 @@ gin [https://github.com/gin-gonic/gin]
 read several posts about other frameworks to compare but decided to stick with gin 
 because i worked with it already and it is quite stable and popular
 
+#### json-Response structure
+##### choice
+jsend [https://labs.omniti.com/labs/jsend]
+
+##### why 
+plain and simple, less overhead
+
 #### Database
 ##### choice: 
 postgresql

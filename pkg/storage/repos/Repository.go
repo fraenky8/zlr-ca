@@ -7,7 +7,7 @@ import (
 	"github.com/fraenky8/zlr-ca/pkg/storage"
 )
 
-type Service struct {
+type Repository struct {
 	IcecreamService                  domain.IcecreamService
 	IngredientService                domain.IngredientService
 	SourcingValueService             domain.SourcingValueService
@@ -15,8 +15,8 @@ type Service struct {
 	IcecreamHasSourcingValuesService domain.IcecreamHasSourcingValuesService
 }
 
-func NewService(db storage.Database) (*Service, error) {
-	s := &Service{
+func NewRepository(db storage.Database) (*Repository, error) {
+	s := &Repository{
 		IcecreamService:                  NewIcecreamRepo(db),
 		IngredientService:                NewIngredientsRepo(db),
 		SourcingValueService:             NewSourcingValuesRepo(db),
@@ -31,7 +31,7 @@ func NewService(db storage.Database) (*Service, error) {
 	return s, nil
 }
 
-func (s *Service) Verify() error {
+func (s *Repository) Verify() error {
 	if s.IcecreamService == nil {
 		return fmt.Errorf("no IcecreamService given")
 	}

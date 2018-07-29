@@ -26,7 +26,7 @@ func main() {
 	}
 	defer db.Close()
 
-	repository, err := repos.NewService(db)
+	repository, err := repos.NewRepository(db)
 	if err != nil {
 		fmt.Println(err)
 		return

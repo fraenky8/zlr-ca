@@ -77,7 +77,7 @@ func TestCreateIcecream_withWrongContentType_returnsFailResponse(t *testing.T) {
 
 	s, err := NewServer(
 		&ServerConfig{Mode: gin.ReleaseMode},
-		&repos.Service{
+		&repos.Repository{
 			IcecreamService:                  is,
 			IngredientService:                &mock.IngredientService{},
 			SourcingValueService:             &mock.SourcingValueService{},
@@ -113,7 +113,7 @@ func TestCreateIcecream_withEmptyBody_returnsFailResponse(t *testing.T) {
 
 	s, err := NewServer(
 		&ServerConfig{Mode: gin.ReleaseMode},
-		&repos.Service{
+		&repos.Repository{
 			IcecreamService:                  is,
 			IngredientService:                &mock.IngredientService{},
 			SourcingValueService:             &mock.SourcingValueService{},
@@ -149,7 +149,7 @@ func TestCreateIcecream_withFaultyData_returnsFailResponse(t *testing.T) {
 
 	s, err := NewServer(
 		&ServerConfig{Mode: gin.ReleaseMode},
-		&repos.Service{
+		&repos.Repository{
 			IcecreamService:                  is,
 			IngredientService:                &mock.IngredientService{},
 			SourcingValueService:             &mock.SourcingValueService{},
@@ -185,7 +185,7 @@ func TestCreateIcecream_withMissingProductId_returnsFailResponse(t *testing.T) {
 
 	s, err := NewServer(
 		&ServerConfig{Mode: gin.ReleaseMode},
-		&repos.Service{
+		&repos.Repository{
 			IcecreamService:                  is,
 			IngredientService:                &mock.IngredientService{},
 			SourcingValueService:             &mock.SourcingValueService{},
@@ -221,7 +221,7 @@ func TestCreateIcecream_withMissingName_returnsFailResponse(t *testing.T) {
 
 	s, err := NewServer(
 		&ServerConfig{Mode: gin.ReleaseMode},
-		&repos.Service{
+		&repos.Repository{
 			IcecreamService:                  is,
 			IngredientService:                &mock.IngredientService{},
 			SourcingValueService:             &mock.SourcingValueService{},
@@ -257,7 +257,7 @@ func TestCreateIcecream_withFaultyProductId_returnsFailResponse(t *testing.T) {
 
 	s, err := NewServer(
 		&ServerConfig{Mode: gin.ReleaseMode},
-		&repos.Service{
+		&repos.Repository{
 			IcecreamService:                  is,
 			IngredientService:                &mock.IngredientService{},
 			SourcingValueService:             &mock.SourcingValueService{},
@@ -293,7 +293,7 @@ func TestCreateIcecream_withExistingIcecream_returnsFailResponse(t *testing.T) {
 
 	s, err := NewServer(
 		&ServerConfig{Mode: gin.ReleaseMode},
-		&repos.Service{
+		&repos.Repository{
 			IcecreamService:                  is,
 			IngredientService:                &mock.IngredientService{},
 			SourcingValueService:             &mock.SourcingValueService{},
@@ -340,7 +340,7 @@ func TestCreateIcecream_withNewIcecreamButDatabaseError_returnsErrorResponse(t *
 
 	s, err := NewServer(
 		&ServerConfig{Mode: gin.ReleaseMode},
-		&repos.Service{
+		&repos.Repository{
 			IcecreamService:                  is,
 			IngredientService:                &mock.IngredientService{},
 			SourcingValueService:             &mock.SourcingValueService{},
@@ -389,7 +389,7 @@ func TestCreateIcecream_withNewValidIcecream_returnsSuccessResponse(t *testing.T
 
 	s, err := NewServer(
 		&ServerConfig{Mode: gin.ReleaseMode},
-		&repos.Service{
+		&repos.Repository{
 			IcecreamService:                  is,
 			IngredientService:                &mock.IngredientService{},
 			SourcingValueService:             &mock.SourcingValueService{},

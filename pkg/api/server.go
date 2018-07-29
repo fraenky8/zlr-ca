@@ -36,11 +36,11 @@ func (s *ServerConfig) Verify() error {
 
 type Server struct {
 	config *ServerConfig
-	repo   *repos.Service
+	repo   *repos.Repository
 	engine *gin.Engine
 }
 
-func NewServer(config *ServerConfig, repo *repos.Service) (*Server, error) {
+func NewServer(config *ServerConfig, repo *repos.Repository) (*Server, error) {
 
 	if err := config.Verify(); err != nil {
 		return nil, fmt.Errorf("could not create server with config: %v", err)
@@ -84,24 +84,24 @@ func (s *Server) setupRoutes() *Server {
 			create.PUT("", s.createIcecreams)
 		}
 
-		read := icecreams.Group("/")
+		read := icecreams.Group("")
 		{
-			read.GET("/", s.readIcecreams)
+			read.GET("", s.readIcecreams)
 			read.GET("/:ids", s.readIcecreams)
 			read.GET("/:ids/", s.readIcecreams)
 			read.GET("/:ids/ingredients", s.readIcecreamIngredients)
 			read.GET("/:ids/sourcingvalues", s.readIcecreamSourcingValues)
 		}
 
-		update := icecreams.Group("/").Use(s.icecreamRequest)
+		update := icecreams.Group("").Use(s.icecreamRequest)
 		{
-			update.PATCH("/", s.updateIcecreams)
+			update.PATCH("", s.updateIcecreams)
 		}
 
 		// delete collides with an in-built function
-		del := icecreams.Group("/")
+		del := icecreams.Group("")
 		{
-			del.DELETE("/", func(c *gin.Context) {
+			del.DELETE("", func(c *gin.Context) {
 				c.JSON(http.StatusMethodNotAllowed, FailStringResponse("deleting the entire collection is not allowed"))
 			})
 			del.DELETE("/:ids", s.deleteIcecreams)
@@ -122,12 +122,12 @@ func (s *Server) setupRoutes() *Server {
 
 	ingredients := s.engine.Group("/ingredients")
 	{
-		ingredients.GET("/", s.readIngredients)
+		ingredients.GET("", s.readIngredients)
 	}
 
 	sourcingvalues := s.engine.Group("/sourcingvalues")
 	{
-		sourcingvalues.GET("/", s.readSourcingValues)
+		sourcingvalues.GET("", s.readSourcingValues)
 	}
 
 	return s
