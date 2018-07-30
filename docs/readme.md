@@ -45,8 +45,8 @@ plain and simple, less overhead:
 
 ```
 {
-    "status": "[success|fail|error]",
-    ["message": "some info here"]
+    "status": "success",
+    "message": "some info here",
     "data": {
         "icecreams": [
             { ... }
@@ -62,7 +62,7 @@ postgresql
 ##### why
 "The World's Most Advanced Open Source Relational Database"
 
-why relational: because I'm most experienced and family with
+why relational: because I'm most experienced and familiar with
 
 ### Deployment
 With `docker-compose` consisting of a `postgres` and an `zlrca` service. Database sets up with all data provided in 
