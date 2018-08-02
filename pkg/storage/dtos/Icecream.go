@@ -5,7 +5,7 @@ import (
 )
 
 type Icecream struct {
-	ProductId             int            `db:"product_id"`
+	ProductId             int64          `db:"product_id"`
 	Name                  string         `db:"name"`
 	Description           sql.NullString `db:"description"`
 	Story                 sql.NullString `db:"story"`

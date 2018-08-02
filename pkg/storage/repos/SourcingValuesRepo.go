@@ -18,7 +18,7 @@ func NewSourcingValuesRepo(db storage.Database) *SourcingValuesRepo {
 	}
 }
 
-func (r *SourcingValuesRepo) Creates(sourcingValues domain.SourcingValues) ([]int, error) {
+func (r *SourcingValuesRepo) Creates(sourcingValues domain.SourcingValues) ([]int64, error) {
 
 	stmt, err := r.db.DB().Preparex(fmt.Sprintf(`
 		INSERT INTO %s.sourcing_values (description) VALUES (TRIM($1)) 
@@ -29,9 +29,9 @@ func (r *SourcingValuesRepo) Creates(sourcingValues domain.SourcingValues) ([]in
 		return nil, fmt.Errorf("could not prepare statement: %v", err)
 	}
 
-	var ids []int
+	var ids []int64
 	for _, sourcingValue := range sourcingValues {
-		var id int
+		var id int64
 		err := stmt.Get(&id, sourcingValue)
 		if err != nil {
 			return nil, fmt.Errorf("could not create sourcing value: %v", err)
@@ -42,7 +42,7 @@ func (r *SourcingValuesRepo) Creates(sourcingValues domain.SourcingValues) ([]in
 	return ids, nil
 }
 
-func (r *SourcingValuesRepo) Read(icecreamProductId int) (domain.SourcingValues, error) {
+func (r *SourcingValuesRepo) Read(icecreamProductId int64) (domain.SourcingValues, error) {
 
 	var sourcingValues []*dtos.SourcingValues
 	err := r.db.DB().Select(&sourcingValues, fmt.Sprintf(`
@@ -62,7 +62,7 @@ func (r *SourcingValuesRepo) Read(icecreamProductId int) (domain.SourcingValues,
 	return r.convert(sourcingValues)
 }
 
-func (r *SourcingValuesRepo) Reads(icecreamProductIds []int) (sourcingValues []domain.SourcingValues, err error) {
+func (r *SourcingValuesRepo) Reads(icecreamProductIds []int64) (sourcingValues []domain.SourcingValues, err error) {
 	for _, id := range icecreamProductIds {
 		sourcingValue, err := r.Read(id)
 		if err != nil {
@@ -88,7 +88,7 @@ func (r *SourcingValuesRepo) ReadAll() (domain.SourcingValues, error) {
 	return r.convert(sourcingValues)
 }
 
-func (r *SourcingValuesRepo) Deletes(icecreamProductIds []int) (err error) {
+func (r *SourcingValuesRepo) Deletes(icecreamProductIds []int64) (err error) {
 
 	tx := r.db.DB().MustBegin()
 	defer func() {

@@ -16,7 +16,7 @@ func NewIcecreamHasIngredientsRepo(db storage.Database) *IcecreamHasIngredientsR
 	}
 }
 
-func (r *IcecreamHasIngredientsRepo) Create(productId int, ingredientIds []int) error {
+func (r *IcecreamHasIngredientsRepo) Create(productId int64, ingredientIds []int64) error {
 	stmt, err := r.db.DB().Preparex(fmt.Sprintf(`
 		INSERT INTO %s.icecream_has_ingredients 
 			(icecream_product_id, ingredients_id) 

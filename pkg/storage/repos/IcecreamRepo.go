@@ -33,7 +33,7 @@ func NewIcecreamRepo(db storage.Database) *IcecreamRepo {
 	return repo
 }
 
-func (r *IcecreamRepo) Creates(icecreams []*domain.Icecream) ([]int, error) {
+func (r *IcecreamRepo) Creates(icecreams []*domain.Icecream) ([]int64, error) {
 
 	stmt, err := r.db.DB().Preparex(fmt.Sprintf(`
 		INSERT INTO %s.icecream
@@ -47,10 +47,10 @@ func (r *IcecreamRepo) Creates(icecreams []*domain.Icecream) ([]int, error) {
 		return nil, fmt.Errorf("could not prepare statement: %v", err)
 	}
 
-	var ids []int
+	var ids []int64
 	for _, icecream := range icecreams {
 
-		var productId int
+		var productId int64
 		err = stmt.Get(&productId,
 			icecream.ProductID, icecream.Name, icecream.Description, icecream.Story,
 			icecream.ImageOpen, icecream.ImageClosed, icecream.AllergyInfo, icecream.DietaryCertifications,
@@ -89,7 +89,7 @@ func (r *IcecreamRepo) Creates(icecreams []*domain.Icecream) ([]int, error) {
 	return ids, nil
 }
 
-func (r *IcecreamRepo) Reads(ids []int) ([]*domain.Icecream, error) {
+func (r *IcecreamRepo) Reads(ids []int64) ([]*domain.Icecream, error) {
 
 	query, args, err := sqlx.In(fmt.Sprintf(`
 		SELECT 
@@ -180,7 +180,7 @@ func (r *IcecreamRepo) Updates(icecreams []*domain.Icecream) (err error) {
 	return tx.Commit()
 }
 
-func (r *IcecreamRepo) Deletes(ids []int) (err error) {
+func (r *IcecreamRepo) Deletes(ids []int64) (err error) {
 
 	tx := r.db.DB().MustBegin()
 
@@ -219,7 +219,7 @@ func (r *IcecreamRepo) Deletes(ids []int) (err error) {
 func (r *IcecreamRepo) convert(dtos []dtos.Icecream) (icecreams []*domain.Icecream, err error) {
 	for _, icecream := range dtos {
 		icecreams = append(icecreams, &domain.Icecream{
-			ProductID:             strconv.Itoa(icecream.ProductId),
+			ProductID:             strconv.FormatInt(icecream.ProductId, 10),
 			Name:                  icecream.Name,
 			Description:           icecream.Description.String,
 			Story:                 icecream.Story.String,

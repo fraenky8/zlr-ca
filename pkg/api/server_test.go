@@ -147,7 +147,7 @@ func TestReadSingleIcecream_withValidAuthorization_returnsStatusOkAndSingleIcecr
 	)
 	assert.Nil(t, err)
 
-	is.ReadsFn = func(ids []int) ([]*domain.Icecream, error) {
+	is.ReadsFn = func(ids []int64) ([]*domain.Icecream, error) {
 		return []*domain.Icecream{{
 			ProductID: icecreamProductId1,
 			// ... more data
@@ -200,7 +200,7 @@ func TestReadMultipleIcecream_withValidAuthorization_returnsStatusOkAndMultipleI
 	)
 	assert.Nil(t, err)
 
-	is.ReadsFn = func(ids []int) ([]*domain.Icecream, error) {
+	is.ReadsFn = func(ids []int64) ([]*domain.Icecream, error) {
 		return []*domain.Icecream{{
 			ProductID: icecreamProductId1,
 			// ... more data
@@ -518,7 +518,7 @@ func TestCreateIcecream_withExistingIcecream_returnsFailResponse(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	is.ReadsFn = func(ids []int) ([]*domain.Icecream, error) {
+	is.ReadsFn = func(ids []int64) ([]*domain.Icecream, error) {
 		// existing icecream
 		var icecreams []*domain.Icecream
 		err = json.Unmarshal([]byte(icecream), &icecreams)
@@ -566,11 +566,11 @@ func TestCreateIcecream_withNewIcecreamButDatabaseError_returnsErrorResponse(t *
 	)
 	assert.Nil(t, err)
 
-	is.ReadsFn = func(ids []int) ([]*domain.Icecream, error) {
+	is.ReadsFn = func(ids []int64) ([]*domain.Icecream, error) {
 		return nil, nil
 	}
 
-	is.CreatesFn = func(icecreams []*domain.Icecream) ([]int, error) {
+	is.CreatesFn = func(icecreams []*domain.Icecream) ([]int64, error) {
 		// simulation database error
 		return nil, fmt.Errorf("foreign key constraint violated")
 	}
@@ -616,13 +616,13 @@ func TestCreateIcecream_withNewValidIcecream_returnsSuccessResponse(t *testing.T
 	)
 	assert.Nil(t, err)
 
-	is.ReadsFn = func(ids []int) ([]*domain.Icecream, error) {
+	is.ReadsFn = func(ids []int64) ([]*domain.Icecream, error) {
 		return nil, nil
 	}
 
-	is.CreatesFn = func(icecreams []*domain.Icecream) ([]int, error) {
+	is.CreatesFn = func(icecreams []*domain.Icecream) ([]int64, error) {
 		id, _ := strconv.Atoi(icecreamProductId1)
-		return []int{id}, nil
+		return []int64{int64(id)}, nil
 	}
 
 	// when

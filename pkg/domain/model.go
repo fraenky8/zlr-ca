@@ -6,33 +6,33 @@ import (
 )
 
 type IcecreamService interface {
-	Creates(icecreams []*Icecream) ([]int, error)
-	Reads(ids []int) ([]*Icecream, error)
+	Creates(icecreams []*Icecream) ([]int64, error)
+	Reads(ids []int64) ([]*Icecream, error)
 	Updates(icecreams []*Icecream) error
-	Deletes(ids []int) error
+	Deletes(ids []int64) error
 }
 
 type IngredientService interface {
-	Creates(ingredients Ingredients) ([]int, error)
-	Read(icecreamProductId int) (Ingredients, error)
-	Reads(icecreamProductIds []int) ([]Ingredients, error)
+	Creates(ingredients Ingredients) ([]int64, error)
+	Read(icecreamProductId int64) (Ingredients, error)
+	Reads(icecreamProductIds []int64) ([]Ingredients, error)
 	ReadAll() (Ingredients, error)
 }
 
 type SourcingValueService interface {
-	Creates(sourcingValues SourcingValues) ([]int, error)
-	Read(icecreamProductId int) (SourcingValues, error)
-	Reads(icecreamProductIds []int) ([]SourcingValues, error)
+	Creates(sourcingValues SourcingValues) ([]int64, error)
+	Read(icecreamProductId int64) (SourcingValues, error)
+	Reads(icecreamProductIds []int64) ([]SourcingValues, error)
 	ReadAll() (SourcingValues, error)
-	Deletes(icecreamProductIds []int) error
+	Deletes(icecreamProductIds []int64) error
 }
 
 type IcecreamHasIngredientsService interface {
-	Create(icecreamProductId int, ingredientIds []int) error
+	Create(icecreamProductId int64, ingredientIds []int64) error
 }
 
 type IcecreamHasSourcingValuesService interface {
-	Create(icecreamProductId int, sourcingValueIds []int) error
+	Create(icecreamProductId int64, sourcingValueIds []int64) error
 }
 
 type Ingredient string

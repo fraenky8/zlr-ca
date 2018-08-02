@@ -1,6 +1,6 @@
 package dtos
 
 type Ingredients struct {
-	Id   int    `db:"id"`
+	Id   int64  `db:"id"`
 	Name string `db:"name"`
 }

@@ -272,7 +272,7 @@ func (s *Server) createIcecreams(c *gin.Context) {
 			return
 		}
 
-		if existingIcecream, _ := s.repo.IcecreamService.Reads([]int{productId}); existingIcecream != nil {
+		if existingIcecream, _ := s.repo.IcecreamService.Reads([]int64{int64(productId)}); existingIcecream != nil {
 			c.JSON(http.StatusBadRequest, FailStringResponse("icecream with productId = "+icecream.ProductID+" already exists"))
 			return
 		}
@@ -363,11 +363,11 @@ func (s *Server) readSourcingValues(c *gin.Context) {
 	)
 }
 
-func convertIdsParam(sids string) (ids []int, err error) {
+func convertIdsParam(sids string) (ids []int64, err error) {
 
 	sids = strings.TrimSpace(sids)
 	if sids == "" {
-		return []int{}, fmt.Errorf("no id(s) provided")
+		return []int64{}, fmt.Errorf("no id(s) provided")
 	}
 
 	for _, id := range strings.Split(sids, ",") {
@@ -385,15 +385,15 @@ func convertIdsParam(sids string) (ids []int, err error) {
 			continue
 		}
 
-		ids = append(ids, id)
+		ids = append(ids, int64(id))
 	}
 
 	if len(ids) == 0 {
-		return []int{}, fmt.Errorf("no valid id(s) provided")
+		return []int64{}, fmt.Errorf("no valid id(s) provided")
 	}
 
 	if err != nil {
-		return []int{}, fmt.Errorf("at least one invalid id detected: %v", err)
+		return []int64{}, fmt.Errorf("at least one invalid id detected: %v", err)
 	}
 
 	return ids, nil

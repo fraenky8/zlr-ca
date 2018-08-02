@@ -72,7 +72,6 @@ With `docker-compose` consisting of a `postgres` and an `zlrca` service. Databas
 - adding more tests
   - table driven tests / subtests
 - implement CRUD for ingredients & sourcing values
-- replace int to int64
 - graceful shutdown
 - moving repos in subfolder postgres because they implement postgres sql syntax and therefore cannot be reused
 

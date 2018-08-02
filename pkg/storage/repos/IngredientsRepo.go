@@ -18,7 +18,7 @@ func NewIngredientsRepo(db storage.Database) *IngredientsRepo {
 	}
 }
 
-func (r *IngredientsRepo) Creates(ingredients domain.Ingredients) ([]int, error) {
+func (r *IngredientsRepo) Creates(ingredients domain.Ingredients) ([]int64, error) {
 
 	stmt, err := r.db.DB().Preparex(fmt.Sprintf(`
 		INSERT INTO %s.ingredients (name) VALUES (TRIM($1)) 
@@ -29,9 +29,9 @@ func (r *IngredientsRepo) Creates(ingredients domain.Ingredients) ([]int, error)
 		return nil, fmt.Errorf("could not prepare statement: %v", err)
 	}
 
-	var ids []int
+	var ids []int64
 	for _, ingredient := range ingredients {
-		var id int
+		var id int64
 		err := stmt.Get(&id, ingredient)
 		if err != nil {
 			return nil, fmt.Errorf("could not create ingredient: %v", err)
@@ -42,7 +42,7 @@ func (r *IngredientsRepo) Creates(ingredients domain.Ingredients) ([]int, error)
 	return ids, nil
 }
 
-func (r *IngredientsRepo) Read(icecreamProductId int) (domain.Ingredients, error) {
+func (r *IngredientsRepo) Read(icecreamProductId int64) (domain.Ingredients, error) {
 
 	var ingredients []*dtos.Ingredients
 	err := r.db.DB().Select(&ingredients, fmt.Sprintf(`
@@ -62,7 +62,7 @@ func (r *IngredientsRepo) Read(icecreamProductId int) (domain.Ingredients, error
 	return r.convert(ingredients)
 }
 
-func (r *IngredientsRepo) Reads(icecreamProductIds []int) (ingredients []domain.Ingredients, err error) {
+func (r *IngredientsRepo) Reads(icecreamProductIds []int64) (ingredients []domain.Ingredients, err error) {
 	for _, id := range icecreamProductIds {
 		ingredient, err := r.Read(id)
 		if err != nil {

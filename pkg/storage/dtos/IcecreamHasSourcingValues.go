@@ -1,6 +1,6 @@
 package dtos
 
 type IcecreamHasSourcingValues struct {
-	IcecreamProductId int `db:"IcecreamProductId"`
-	SourcingValuesId  int `db:"SourcingValuesId"`
+	IcecreamProductId int64 `db:"IcecreamProductId"`
+	SourcingValuesId  int64 `db:"SourcingValuesId"`
 }
