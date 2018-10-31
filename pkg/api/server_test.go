@@ -268,7 +268,7 @@ func TestCreateIcecream_withWrongContentType_returnsFailResponse(t *testing.T) {
 	s.ServeHTTP(w, r)
 
 	// then
-	assert.Equal(t, responseContentType, w.HeaderMap.Get("Content-Type"))
+	assert.Equal(t, responseContentType, w.Header().Get("Content-Type"))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 
 	var response Response
@@ -305,7 +305,7 @@ func TestCreateIcecream_withNilBody_returnsFailResponse(t *testing.T) {
 	s.ServeHTTP(w, r)
 
 	// then
-	assert.Equal(t, responseContentType, w.HeaderMap.Get("Content-Type"))
+	assert.Equal(t, responseContentType, w.Header().Get("Content-Type"))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 
 	var response Response
@@ -342,7 +342,7 @@ func TestCreateIcecream_withEmptyBody_returnsFailResponse(t *testing.T) {
 	s.ServeHTTP(w, r)
 
 	// then
-	assert.Equal(t, responseContentType, w.HeaderMap.Get("Content-Type"))
+	assert.Equal(t, responseContentType, w.Header().Get("Content-Type"))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 
 	var response Response
@@ -379,7 +379,7 @@ func TestCreateIcecream_withFaultyData_returnsFailResponse(t *testing.T) {
 	s.ServeHTTP(w, r)
 
 	// then
-	assert.Equal(t, responseContentType, w.HeaderMap.Get("Content-Type"))
+	assert.Equal(t, responseContentType, w.Header().Get("Content-Type"))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 
 	var response Response
@@ -416,7 +416,7 @@ func TestCreateIcecream_withMissingProductId_returnsFailResponse(t *testing.T) {
 	s.ServeHTTP(w, r)
 
 	// then
-	assert.Equal(t, responseContentType, w.HeaderMap.Get("Content-Type"))
+	assert.Equal(t, responseContentType, w.Header().Get("Content-Type"))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 
 	var response Response
@@ -453,7 +453,7 @@ func TestCreateIcecream_withMissingName_returnsFailResponse(t *testing.T) {
 	s.ServeHTTP(w, r)
 
 	// then
-	assert.Equal(t, responseContentType, w.HeaderMap.Get("Content-Type"))
+	assert.Equal(t, responseContentType, w.Header().Get("Content-Type"))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 
 	var response Response
@@ -490,7 +490,7 @@ func TestCreateIcecream_withFaultyProductId_returnsFailResponse(t *testing.T) {
 	s.ServeHTTP(w, r)
 
 	// then
-	assert.Equal(t, responseContentType, w.HeaderMap.Get("Content-Type"))
+	assert.Equal(t, responseContentType, w.Header().Get("Content-Type"))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 
 	var response Response
@@ -536,7 +536,7 @@ func TestCreateIcecream_withExistingIcecream_returnsFailResponse(t *testing.T) {
 	s.ServeHTTP(w, r)
 
 	// then
-	assert.Equal(t, responseContentType, w.HeaderMap.Get("Content-Type"))
+	assert.Equal(t, responseContentType, w.Header().Get("Content-Type"))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 
 	var response Response
@@ -584,7 +584,7 @@ func TestCreateIcecream_withNewIcecreamButDatabaseError_returnsErrorResponse(t *
 	s.ServeHTTP(w, r)
 
 	// then
-	assert.Equal(t, responseContentType, w.HeaderMap.Get("Content-Type"))
+	assert.Equal(t, responseContentType, w.Header().Get("Content-Type"))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 
 	var response Response
@@ -634,7 +634,7 @@ func TestCreateIcecream_withNewValidIcecream_returnsSuccessResponse(t *testing.T
 	s.ServeHTTP(w, r)
 
 	// then
-	assert.Equal(t, responseContentType, w.HeaderMap.Get("Content-Type"))
+	assert.Equal(t, responseContentType, w.Header().Get("Content-Type"))
 	assert.Equal(t, http.StatusCreated, w.Code)
 
 	response := struct {
